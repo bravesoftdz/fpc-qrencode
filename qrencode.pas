@@ -3,209 +3,11 @@ unit qrencode;
 interface
 
 uses
-  Windows, struct;
+  Windows, SysUtils, struct;
 
-{**
- * Instantiate an input data object. The version is set to 0 (auto-select)
- * and the error correction level is set to QR_ECLEVEL_L.
- * @return an input object (initialized). On error, NULL is returned and errno
- *         is set to indicate the error.
- * @throw ENOMEM unable to allocate memory.
- *}
-function QRinput_new(): PQRinput;
-
-{**
- * Instantiate an input data object.
- * @param version version number.
- * @param level Error correction level.
- * @return an input object (initialized). On error, NULL is returned and errno
- *         is set to indicate the error.
- * @throw ENOMEM unable to allocate memory for input objects.
- * @throw EINVAL invalid arguments.
- *}
-function QRinput_new2(version: Integer; level: QRecLevel): PQRinput;
-
-{**
- * Instantiate an input data object. Object's Micro QR Code flag is set.
- * Unlike with full-sized QR Code, version number must be specified (>0).
- * @param version version number (1--4).
- * @param level Error correction level.
- * @return an input object (initialized). On error, NULL is returned and errno
- *         is set to indicate the error.
- * @throw ENOMEM unable to allocate memory for input objects.
- * @throw EINVAL invalid arguments.
- *}
-function QRinput_newMQR(version: Integer; level: QRecLevel): PQRinput;
-
-{**
- * Append data to an input object.
- * The data is copied and appended to the input object.
- * @param input input object.
- * @param mode encoding mode.
- * @param size size of data (byte).
- * @param data a pointer to the memory area of the input data.
- * @retval 0 success.
- * @retval -1 an error occurred and errno is set to indeicate the error.
- *            See Execptions for the details.
- * @throw ENOMEM unable to allocate memory.
- * @throw EINVAL input data is invalid.
- *
- *}
-function QRinput_append(input: PQRinput; mode: QRencodeMode; size: Integer;
-  const data: PByte): Integer;
-
-{**
- * Append ECI header.
- * @param input input object.
- * @param ecinum ECI indicator number (0 - 999999)
- * @retval 0 success.
- * @retval -1 an error occurred and errno is set to indeicate the error.
- *            See Execptions for the details.
- * @throw ENOMEM unable to allocate memory.
- * @throw EINVAL input data is invalid.
- *
- *}
-function QRinput_appendECIheader(input: PQRinput; ecinum: Cardinal): Integer;
-
-{**
- * Get current version.
- * @param input input object.
- * @return current version.
- *}
-function QRinput_getVersion(input: PQRinput): Integer;
-
-{**
- * Set version of the QR code that is to be encoded.
- * This function cannot be applied to Micro QR Code.
- * @param input input object.
- * @param version version number (0 = auto)
- * @retval 0 success.
- * @retval -1 invalid argument.
- *}
-function QRinput_setVersion(input: PQRinput; version: Integer): Integer;
-
-{**
- * Get current error correction level.
- * @param input input object.
- * @return Current error correcntion level.
- *}
-function QRinput_getErrorCorrectionLevel(input: PQRinput): QRecLevel;
-
-{**
- * Set error correction level of the QR code that is to be encoded.
- * This function cannot be applied to Micro QR Code.
- * @param input input object.
- * @param level Error correction level.
- * @retval 0 success.
- * @retval -1 invalid argument.
- *}
-function QRinput_setErrorCorrectionLevel(input: PQRinput; level: QRecLevel): Integer;
-
-{**
- * Set version and error correction level of the QR code at once.
- * This function is recommened for Micro QR Code.
- * @param input input object.
- * @param version version number (0 = auto)
- * @param level Error correction level.
- * @retval 0 success.
- * @retval -1 invalid argument.
- *}
-function QRinput_setVersionAndErrorCorrectionLevel(input: PQRinput;
-  version: Integer; level: QRecLevel): Integer;
-
-{**
- * Free the input object.
- * All of data chunks in the input object are freed too.
- * @param input input object.
- *}
-procedure QRinput_free(input: PQRinput);
-
-{**
- * Validate the input data.
- * @param mode encoding mode.
- * @param size size of data (byte).
- * @param data a pointer to the memory area of the input data.
- * @retval 0 success.
- * @retval -1 invalid arguments.
- *}
-function QRinput_check(mode: QRencodeMode; size: Integer;
-  const data: PByte): Integer;
-
-{**
- * Set of QRinput for structured symbols.
- *}
-//typedef struct _QRinput_Struct QRinput_Struct;
-
-{**
- * Instantiate a set of input data object.
- * @return an instance of QRinput_Struct. On error, NULL is returned and errno
- *         is set to indicate the error.
- * @throw ENOMEM unable to allocate memory.
- *}
-//extern QRinput_Struct *QRinput_Struct_new(void);
-
-{**
- * Set parity of structured symbols.
- * @param s structured input object.
- * @param parity parity of s.
- *}
-procedure QRinput_Struct_setParity(s: PQRinput_Struct; parity: Byte);
-
-{**
- * Append a QRinput object to the set. QRinput created by QRinput_newMQR()
- * will be rejected.
- * @warning never append the same QRinput object twice or more.
- * @param s structured input object.
- * @param input an input object.
- * @retval >0 number of input objects in the structure.
- * @retval -1 an error occurred. See Exceptions for the details.
- * @throw ENOMEM unable to allocate memory.
- * @throw EINVAL invalid arguments.
- *}
-function QRinput_Struct_appendInput(s: PQRinput_Struct; input: PQRinput): Integer;
-
-{**
- * Free all of QRinput in the set.
- * @param s a structured input object.
- *}
-procedure QRinput_Struct_free(s: PQRinput_Struct);
-
-{**
- * Split a QRinput to QRinput_Struct. It calculates a parity, set it, then
- * insert structured-append headers. QRinput created by QRinput_newMQR() will
- * be rejected.
- * @param input input object. Version number and error correction level must be
- *        set.
- * @return a set of input data. On error, NULL is returned, and errno is set
- *         to indicate the error. See Exceptions for the details.
- * @throw ERANGE input data is too large.
- * @throw EINVAL invalid input data.
- * @throw ENOMEM unable to allocate memory.
- *}
-function QRinput_splitQRinputToStruct(input: PQRinput): PQRinput_Struct;
-
-{**
- * Insert structured-append headers to the input structure. It calculates
- * a parity and set it if the parity is not set yet.
- * @param s input structure
- * @retval 0 success.
- * @retval -1 an error occurred and errno is set to indeicate the error.
- *            See Execptions for the details.
- * @throw EINVAL invalid input object.
- * @throw ENOMEM unable to allocate memory.
- *}
-function QRinput_Struct_insertStructuredAppendHeaders(s: PQRinput_Struct): Integer;
-
-{**
- * Set FNC1-1st position flag.
- *}
-function QRinput_setFNC1First(input: PQRinput): Integer;
-
-{**
- * Set FNC1-2nd position flag and application identifier.
- *}
-function QRinput_setFNC1Second(input: PQRinput; appid: Byte): Integer;
-
+{******************************************************************************
+ * QRcode output (qrencode.c)
+ *****************************************************************************}
 
 {**
  * Create a symbol from the input data.
@@ -372,8 +174,7 @@ procedure QRcode_List_free(qrlist: PQRcode_List);
  * @param minor_version
  * @param micro_version
  *}
-procedure QRcode_APIVersion(major_version: PInteger; minor_version: PInteger;
-  micro_version: PInteger);
+procedure QRcode_APIVersion(major_ver, minor_ver, micro_ver: PInteger);
 
 {**
  * Return a string that identifies the library version.
@@ -392,7 +193,7 @@ procedure QRcode_clearCache();
 implementation
 
 uses
-  rscode, qrinput, qrspec;
+  rscode, qrinput, qrspec, mqrspec, mask, mmask, split;
 
 type
 {******************************************************************************
@@ -589,197 +390,941 @@ begin
 	Result := ret;
 end;
 
-function QRinput_new(): PQRinput;
-begin
+type
+{******************************************************************************
+ * Raw code for Micro QR Code
+ *****************************************************************************}
+  PMQRRawCode = ^TMQRRawCode;
+  TMQRRawCode = record
+    version: Integer;
+    dataLength: Integer;
+    eccLength: Integer;
+    datacode: PByte;
+    ecccode: PByte;
+    rsblock: PRSblock;
+    oddbits: Integer;
+    count: Integer;
+  end;
 
+procedure MQRraw_free(raw: PMQRRawCode);
+begin
+	if raw <> nil then
+  begin
+		FreeMem(raw.datacode);
+		FreeMem(raw.ecccode);
+		FreeMem(raw.rsblock);
+		FreeMem(raw);
+	end;
 end;
 
-function QRinput_new2(version: Integer; level: QRecLevel): PQRinput;
+function MQRraw_new(input: PQRinput): PMQRRawCode;
+var
+  raw: PMQRRawCode;
+  rs: PRS;
 begin
+  try
+    GetMem(raw, SizeOf(TMQRRawCode));
+  except
+    Result := nil;
+    Exit;
+  end;
 
+	raw.version := input.version;
+	raw.dataLength := MQRspec_getDataLength(input.version, input.level);
+	raw.eccLength := MQRspec_getECCLength(input.version, input.level);
+	raw.oddbits := raw.dataLength * 8
+    - MQRspec_getDataLengthBit(input.version, input.level);
+	raw.datacode := QRinput_getByteStream(input);
+	if raw.datacode = nil then
+  begin
+		FreeMem(raw);
+		Result := nil;
+    Exit;
+  end;
+
+  try
+    GetMem(raw.ecccode, raw.eccLength);
+  except
+		FreeMem(raw.datacode);
+		FreeMem(raw);
+		Result := nil;
+    Exit;
+	end;
+  try
+    GetMem(raw.rsblock, SizeOf(TRSblock));
+    ZeroMemory(raw.rsblock, SizeOf(TRSblock));
+  except
+    MQRraw_free(raw);
+    Result := nil;
+    Exit;
+  end;
+	rs := init_rs(8, $11d, 0, 1, raw.eccLength,
+    255 - raw.dataLength - raw.eccLength);
+	if rs = nil then
+  begin
+		MQRraw_free(raw);
+		Result := nil;
+    Exit;
+	end;
+
+	RSblock_initBlock(raw.rsblock, raw.dataLength, raw.datacode, raw.eccLength,
+    raw.ecccode, rs);
+
+	raw.count := 0;
+
+	Result := raw;
 end;
 
-function QRinput_newMQR(version: Integer; level: QRecLevel): PQRinput;
+{**
+ * Return a code (byte).
+ * This function can be called iteratively.
+ * @param raw raw code.
+ * @return code
+ *}
+function MQRraw_getCode(raw: PMQRRawCode): Byte;
+var
+  ret: Byte;
 begin
-
+	if (raw.count < raw.dataLength) then
+		ret := PIndex(raw.datacode, raw.count)^
+	else if(raw.count < raw.dataLength + raw.eccLength) then
+		ret := PIndex(raw.ecccode, raw.count - raw.dataLength)^
+	else begin
+		Result := 0;
+    Exit;
+  end;
+	Inc(raw.count);
+	Result := ret;
 end;
 
-function QRinput_append(input: PQRinput; mode: QRencodeMode; size: Integer;
-  const data: PByte): Integer;
-begin
+type
+{******************************************************************************
+ * Frame filling
+ *****************************************************************************}
+  PFrameFiller = ^TFrameFiller;
+  TFrameFiller = record
+    width: Integer;
+    frame: PByte;
+    x, y: Integer;
+    dir: Integer;
+    bit: Integer;
+    mqr: Integer;
+  end;
 
+function FrameFiller_new(width: Integer; frame: PByte; mqr: Integer): PFrameFiller;
+var
+  filler: PFrameFiller;
+begin
+  try
+    GetMem(filler, SizeOf(TFrameFiller));
+  except
+    Result := nil;
+    Exit;
+  end;
+	filler.width := width;
+	filler.frame := frame;
+	filler.x := width - 1;
+	filler.y := width - 1;
+	filler.dir := -1;
+	filler.bit := -1;
+	filler.mqr := mqr;
+
+	Result := filler;
 end;
 
-function QRinput_appendECIheader(input: PQRinput; ecinum: Cardinal): Integer;
+function FrameFiller_next(filler: PFrameFiller): PByte;
+var
+  p: PByte;
+  x, y, w: Integer;
 begin
+	if filler.bit = -1 then
+  begin
+		filler.bit := 0;
+		Result := PIndex(filler.frame, filler.y * filler.width + filler.x);
+    Exit;
+	end;
 
+	x := filler.x;
+	y := filler.y;
+	p := filler.frame;
+	w := filler.width;
+
+	if filler.bit = 0 then
+  begin
+		Dec(x);
+		Inc(filler.bit);
+	end else begin
+		Inc(x);
+		y := y + filler.dir;
+		Dec(filler.bit);
+	end;
+
+	if filler.dir < 0 then
+  begin
+		if y < 0 then
+    begin
+			y := 0;
+			x := x - 2;
+			filler.dir := 1;
+			if (not filler.mqr) and x = 6 then
+      begin
+				Dec(x);
+				y := 9;
+			end;
+		end;
+	end else begin
+		if y = w then
+    begin
+			y := w - 1;
+			x := x - 2;
+			filler.dir := -1;
+			if ((not filler.mqr) and x) = 6 then
+      begin
+				Dec(x);
+				y := y - 8;
+			end;
+		end;
+	end;
+	if (x < 0) or (y < 0) then
+  begin
+    Result := nil;
+    Exit;
+  end;  
+
+	filler.x := x;
+	filler.y := y;
+
+	if (PIndex(p, y * w + x)^ and $80) <> 0 then
+  begin
+		// This tail recursion could be optimized.
+		Result := FrameFiller_next(filler);
+    Exit;
+	end;
+  Result := PIndex(p, y * w + x);
 end;
 
-function QRinput_getVersion(input: PQRinput): Integer;
+{$IFDEF WITH_TESTS}
+function FrameFiller_test(version: Integer): PByte;
+var
+  width, i, len: Integer;
+  frame, p: PByte;
+  filler: PFrameFiller;
 begin
-
+	width := QRspec_getWidth(version);
+	frame := QRspec_newFrame(version);
+	if frame = nil then
+  begin
+    Result := nil;
+    Exit;
+  end;
+	filler := FrameFiller_new(width, frame, 0);
+	if filler = nil then
+  begin
+		FreeMem(frame);
+		Result := nil;
+    Exit;
+	end;
+	len := QRspec_getDataLength(version, QR_ECLEVEL_L) * 8
+    + QRspec_getECCLength(version, QR_ECLEVEL_L) * 8
+    + QRspec_getRemainder(version);
+	for i := 0 to len - 1 do
+  begin
+		p := FrameFiller_next(filler);
+		if p = nil then
+    begin
+			FreeMem(filler);
+			FreeMem(frame);
+			Result := nil;
+      Exit;
+		end;
+		p^ := (i and $7f) or $80;
+	end;
+	FreeMem(filler);
+	Result := frame;
 end;
 
-function QRinput_setVersion(input: PQRinput; version: Integer): Integer;
+function FrameFiller_testMQR(version: Integer): PByte;
+var
+  width: Integer;
+  frame, p: PByte;
+  filler: PFrameFiller;
+  i, len: Integer;
 begin
+	width := MQRspec_getWidth(version);
+	frame := MQRspec_newFrame(version);
+	if frame = nil then
+  begin
+    Result := nil;
+    Exit;
+  end;
+	filler := FrameFiller_new(width, frame, 1);
+	if filler = nil then
+  begin
+		FreeMem(frame);
+		Result := nil;
+    Exit;
+	end;
+	len := MQRspec_getDataLengthBit(version, QR_ECLEVEL_L)
+    + MQRspec_getECCLength(version, QR_ECLEVEL_L) * 8;
+	for i := 0 to len - 1 do
+  begin
+		p := FrameFiller_next(filler);
+		if p = nil then
+    begin
+//			fprintf(stderr, "Frame filler run over the frame!\n");
+			FreeMem(filler);
+			Result := frame;
+      Exit;
+		end;
+		p^ := (i and $7f) or $80;
+	end;
+	FreeMem(filler);
+	Result := frame;
+end;
+{$ENDIF}
 
+{******************************************************************************
+ * QR-code encoding
+ *****************************************************************************}
+
+function QRcode_new(version, width: Integer; data: PByte): PQRcode;
+var
+  qrcode: PQRcode;
+begin
+  try
+    GetMem(qrcode, SizeOf(TQRcode));
+  except
+	  Result := nil;
+    Exit;
+  end;
+
+	qrcode.version := version;
+	qrcode.width := width;
+	qrcode.data := data;
+
+	Result := qrcode;
 end;
 
-function QRinput_getErrorCorrectionLevel(input: PQRinput): QRecLevel;
+procedure QRcode_free(qrcode: PQRcode);
 begin
-
+	if qrcode <> nil then
+  begin
+		FreeMem(qrcode.data);
+		FreeMem(qrcode);
+	end;
 end;
 
-function QRinput_setErrorCorrectionLevel(input: PQRinput; level: QRecLevel): Integer;
+function QRcode_encodeMask(input: PQRinput; mask: Integer): PQRcode;
+label
+  done;
+var
+  width, version, i, j: Integer;
+  raw: PQRRawCode;
+  frame, masked, p: PByte;
+  code, bit: Byte;
+  filler: PFrameFiller;
+  qrcode: PQRcode;
 begin
+  qrcode := nil;
 
+	if input.mqr <> 0 then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
+	if (input.version < 0) or (input.version > QRSPEC_VERSION_MAX) then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
+	if (input.level > QR_ECLEVEL_H) then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
+
+	raw := QRraw_new(input);
+	if raw = nil then
+  begin
+    Result := nil;
+    Exit;
+  end;
+
+	version := raw.version;
+	width := QRspec_getWidth(version);
+	frame := QRspec_newFrame(version);
+	if frame = nil then
+  begin
+		QRraw_free(raw);
+		Result := nil;
+    Exit;
+	end;
+	filler := FrameFiller_new(width, frame, 0);
+	if filler = nil then
+  begin
+		QRraw_free(raw);
+		FreeMem(frame);
+		Result := nil;
+    Exit;
+	end;
+
+	{* inteleaved data and ecc codes *}
+	for i := 0 to raw.dataLength + raw.eccLength - 1 do
+  begin
+		code := QRraw_getCode(raw);
+		bit := $80;
+		for j := 0 to 7 do
+    begin
+			p := FrameFiller_next(filler);
+			if p = nil then
+        goto done;
+      if (bit and code) <> 0 then
+        p^ := $02 or 1
+      else
+  			p^ := $02 or 0;
+			bit := bit shr 1;
+		end;
+	end;
+	QRraw_free(raw);
+	raw := nil;
+	{* remainder bits *}
+	j := QRspec_getRemainder(version);
+	for i := 0 to j - 1 do
+  begin
+		p := FrameFiller_next(filler);
+		if p = nil then
+      goto done;
+		p^ := $02;
+	end;
+
+	{* masking *}
+
+	if mask = -2 then
+  begin // just for debug purpose
+    try
+      GetMem(masked, width * width);
+    except
+    end;
+    CopyMemory(masked, frame, width * width);
+//		memcpy(masked, frame, width * width);
+	end else if mask < 0 then
+  begin
+		masked := Mask_mask(width, frame, input.level);
+	end else begin
+		masked := Mask_makeMask(width, frame, mask, input.level);
+	end;
+	if masked = nil then
+		goto done;
+
+	qrcode := QRcode_new(version, width, masked);
+
+done:
+	QRraw_free(raw);
+	FreeMem(filler);
+	FreeMem(frame);
+	Result := qrcode;
 end;
 
-function QRinput_setVersionAndErrorCorrectionLevel(input: PQRinput;
-  version: Integer; level: QRecLevel): Integer;
+function QRcode_encodeMaskMQR(input: PQRinput; mask: Integer): PQRcode;
+label
+  done;
+var
+  width, version: Integer;
+  raw: PMQRRawCode;
+  frame, masked, p: PByte;
+  code, bit: Byte;
+  filler: PFrameFiller;
+  i, j: Integer;
+  qrcode: PQRcode;
 begin
+	qrcode := nil;
 
-end;
+	if input.mqr = 0 then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
+	if (input.version <= 0) or (input.version > MQRSPEC_VERSION_MAX) then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
+	if (input.level > QR_ECLEVEL_Q) then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
 
-procedure QRinput_free(input: PQRinput);
-begin
+	raw := MQRraw_new(input);
+	if raw = nil then
+  begin
+    Result := nil;
+    Exit;
+  end;
 
-end;
+	version := raw.version;
+	width := MQRspec_getWidth(version);
+	frame := MQRspec_newFrame(version);
+	if frame = nil then
+  begin
+		MQRraw_free(raw);
+		Result := nil;
+    Exit;
+	end;
+	filler := FrameFiller_new(width, frame, 1);
+	if filler = nil then
+  begin
+		MQRraw_free(raw);
+		FreeMem(frame);
+		Result := nil;
+    Exit;
+	end;
 
-function QRinput_check(mode: QRencodeMode; size: Integer;
-  const data: PByte): Integer;
-begin
+	{* inteleaved data and ecc codes *}
+	for i := 0 to raw.dataLength + raw.eccLength - 1 do
+  begin
+		code := MQRraw_getCode(raw);
+		if (raw.oddbits and i) = (raw.dataLength - 1) then
+    begin
+			bit := 1 shl (raw.oddbits - 1);
+			for j := 0 to raw.oddbits - 1 do
+      begin
+				p := FrameFiller_next(filler);
+				if p = nil then
+          goto done;
+        if (bit and code) <> 0 then
+          p^ := $02 or 1
+        else
+  				p^ := $02 or 0;
+				bit := bit shr 1;
+			end;
+		end else begin
+			bit := $80;
+			for j := 0 to 7 do
+      begin
+				p := FrameFiller_next(filler);
+				if p = nil then
+          goto done;
+        if (bit and code) <> 0 then
+          p^ := $02 or 1
+        else
+  				p^ := $02 or 0;
+				bit := bit shr 1;
+			end;
+		end;
+	end;
+	MQRraw_free(raw);
+	raw := nil;
 
-end;
+	{* masking *}
+	if mask < 0 then
+  begin
+		masked := MMask_mask(version, frame, input.level);
+	end else begin
+		masked := MMask_makeMask(version, frame, mask, input.level);
+	end;
+	if masked = nil then
+		goto done;
 
-procedure QRinput_Struct_setParity(s: PQRinput_Struct; parity: Byte);
-begin
+	qrcode := QRcode_new(version, width, masked);
 
-end;
-
-function QRinput_Struct_appendInput(s: PQRinput_Struct; input: PQRinput): Integer;
-begin
-
-end;
-
-procedure QRinput_Struct_free(s: PQRinput_Struct);
-begin
-
-end;
-
-function QRinput_splitQRinputToStruct(input: PQRinput): PQRinput_Struct;
-begin
-
-end;
-
-function QRinput_Struct_insertStructuredAppendHeaders(s: PQRinput_Struct): Integer;
-begin
-
-end;
-
-function QRinput_setFNC1First(input: PQRinput): Integer;
-begin
-
-end;
-
-function QRinput_setFNC1Second(input: PQRinput; appid: Byte): Integer;
-begin
-
+done:
+	MQRraw_free(raw);
+	FreeMem(filler);
+	FreeMem(frame);
+	Result := qrcode;
 end;
 
 function QRcode_encodeInput(input: PQRinput): PQRcode;
 begin
+	if input.mqr <> 0 then
+		Result := QRcode_encodeMaskMQR(input, -1)
+	else
+		Result := QRcode_encodeMask(input, -1);
+end;
 
+function QRcode_encodeStringReal(const str: PAnsiChar; version: Integer;
+  level: QRecLevel; mqr: Integer; hint: QRencodeMode;
+  casesensitive: Integer): PQRcode;
+var
+  input: PQRinput;
+  code: PQRcode;
+  ret: Integer;
+begin
+	if str = nil then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
+	if (hint <> QR_MODE_8) and (hint <> QR_MODE_KANJI) then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
+
+	if mqr <> 0 then
+  begin
+		input := QRinput_newMQR(version, level);
+	end else begin
+		input := QRinput_new2(version, level);
+	end;
+	if input = nil then
+  begin
+    Result := nil;
+    Exit;
+  end;
+
+	ret := Split_splitStringToQRinput(str, input, hint, casesensitive);
+	if ret < 0 then
+  begin
+		QRinput_free(input);
+		Result := nil;
+    Exit;
+	end;
+	code := QRcode_encodeInput(input);
+	QRinput_free(input);
+
+	Result := code;
 end;
 
 function QRcode_encodeString(const str: PAnsiChar; version: Integer;
   level: QRecLevel; hint: QRencodeMode; casesensitive: Integer): PQRcode;
 begin
-
-end;
-
-function QRcode_encodeString8bit(const str: PAnsiChar; version: Integer;
-  level: QRecLevel): PQRcode;
-begin
-
+	Result := QRcode_encodeStringReal(str, version, level, 0, hint, casesensitive);
 end;
 
 function QRcode_encodeStringMQR(const str: PAnsiChar; version: Integer;
   level: QRecLevel; hint: QRencodeMode; casesensitive: Integer): PQRcode;
 begin
-
+	Result := QRcode_encodeStringReal(str, version, level, 1, hint, casesensitive);
 end;
 
-function QRcode_encodeString8bitMQR(const str: PAnsiChar; version: Integer;
-  level: QRecLevel): PQRcode;
+function QRcode_encodeDataReal(const data: PByte;
+  length, version: Integer; level: QRecLevel; mqr: Integer): PQRcode;
+var
+  input: PQRinput;
+  code: PQRcode;
+  ret: Integer;
 begin
+	if (data = nil) or (length = 0) then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
 
+	if(mqr <> 0) then
+  begin
+		input := QRinput_newMQR(version, level);
+	end else begin
+		input := QRinput_new2(version, level);
+	end;
+	if (input = nil) then
+  begin
+    Result := nil;
+    Exit;
+  end;
+
+	ret := QRinput_append(input, QR_MODE_8, length, data);
+	if (ret < 0) then
+  begin
+		QRinput_free(input);
+		Result := nil;
+    Exit;
+	end;
+	code := QRcode_encodeInput(input);
+	QRinput_free(input);
+
+	Result := code;
 end;
 
-function QRcode_encodeData(size: Integer; const data: PByte; version: Integer;
+function QRcode_encodeData(size: Integer; const data: PByte;
+  version: Integer; level: QRecLevel): PQRcode;
+begin
+	Result := QRcode_encodeDataReal(data, size, version, level, 0);
+end;
+
+function QRcode_encodeString8bit(const str: PAnsiChar; version: Integer;
   level: QRecLevel): PQRcode;
 begin
-
+	if str = nil then
+  begin
+//		errno = EINVAL;
+	  Result := nil;
+    Exit;
+	end;
+	Result := QRcode_encodeDataReal(PByte(str), lstrlen(str), version, level, 0);
 end;
 
 function QRcode_encodeDataMQR(size: Integer; const data: PByte; version: Integer;
   level: QRecLevel): PQRcode;
 begin
-
+	Result := QRcode_encodeDataReal(data, size, version, level, 1);
 end;
 
-procedure QRcode_free(qrcode: PQRcode);
+function QRcode_encodeString8bitMQR(const str: PAnsiChar; version: Integer;
+  level: QRecLevel): PQRcode;
 begin
-
+	if str = nil then
+  begin
+//		errno = EINVAL;
+		Result := nil;
+    Exit;
+	end;
+	Result := QRcode_encodeDataReal(PByte(str), lstrlen(str), version, level, 1);
 end;
+
+{******************************************************************************
+ * Structured QR-code encoding
+ *****************************************************************************}
+
+function QRcode_List_newEntry(): PQRcode_List;
+var
+  entry: PQRcode_List;
+begin
+  try
+    GetMem(entry, SizeOf(QRcode_List));
+  except
+  	Result := nil;
+    Exit;
+  end;
+
+	entry.next := nil;
+	entry.code := nil;
+
+	Result := entry;
+end;
+
+procedure QRcode_List_freeEntry(entry: PQRcode_List);
+begin
+	if entry <> nil then
+  begin
+		QRcode_free(entry.code);
+		FreeMem(entry);
+	end;
+end;
+
+procedure QRcode_List_free(qrlist: PQRcode_List);
+var
+  list, next: PQRcode_List;
+begin
+	list := qrlist;
+
+	while (list <> nil) do
+  begin
+		next := list.next;
+		QRcode_List_freeEntry(list);
+		list := next;
+	end;
+end;
+
+function QRcode_List_size(qrlist: PQRcode_List): Integer;
+var
+  list: PQRcode_List;
+  size: Integer;
+begin
+	list := qrlist;
+	size := 0;
+
+	while (list <> nil) do
+  begin
+		Inc(size);
+		list := list.next;
+	end;
+
+	Result := size;
+end;
+
+{$IFDEF 0}
+function QRcode_parity(const str: PAnsiChar; size: Integer): Byte;
+var
+  parity: Byte;
+  i: Integer;
+begin
+	parity := 0;
+
+	for i := 0 to size - 1 do
+		parity := parity xor Byte(PIndex(str, i)^);
+
+	Result := parity;
+end;
+{$ENDIF}
 
 function QRcode_encodeInputStructured(s: PQRinput_Struct): PQRcode_List;
+label
+  done;
+var
+  head, tail, entry: PQRcode_List;
+  list: PQRinput_InputList;
 begin
+	head := nil;
+	tail := nil;
+  list := s.head;
 
+	while list <> nil do
+  begin
+		if head = nil then
+    begin
+			entry := QRcode_List_newEntry();
+			if entry = nil then
+        goto done;
+			head := entry;
+			tail := head;
+		end else begin
+			entry := QRcode_List_newEntry();
+			if entry = nil then
+        goto done;
+			tail.next := entry;
+			tail := tail.next;
+		end;
+		tail.code := QRcode_encodeInput(list.input);
+		if tail.code = nil then
+			goto done;
+		list := list.next;
+	end;
+
+	Result := head;
+  Exit;
+done:
+	QRcode_List_free(head);
+	Result := nil;
 end;
 
-function QRcode_encodeStringStructured(const str: PAnsiChar; version: Integer;
-  level: QRecLevel; hint: QRencodeMode; casesensitive: Integer): PQRcode_List;
+function QRcode_encodeInputToStructured(input: PQRinput): PQRcode_List;
+var
+  s: PQRinput_Struct;
+  codes: PQRcode_List;
 begin
+	s := QRinput_splitQRinputToStruct(input);
+	if s = nil then
+  begin
+    Result := nil;
+    Exit;
+  end;
 
+	codes := QRcode_encodeInputStructured(s);
+	QRinput_Struct_free(s);
+
+	Result := codes;
 end;
 
-function QRcode_encodeString8bitStructured(const str: PAnsiChar;
-  version: Integer; level: QRecLevel): PQRcode_List;
+function QRcode_encodeDataStructuredReal(size: Integer; const data: PByte;
+	version: Integer; level: QRecLevel; eightbit: Integer;
+  hint: QRencodeMode; casesensitive: Integer): PQRcode_List;
+var
+  input: PQRinput;
+  codes: PQRcode_List;
+  ret: Integer;
 begin
+	if version <= 0 then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
+	if (eightbit = 0) and ((hint <> QR_MODE_8) and (hint <> QR_MODE_KANJI)) then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
 
+	input := QRinput_new2(version, level);
+	if input = nil then
+  begin
+    Result := nil;
+    Exit;
+  end;
+
+	if eightbit <> 0 then
+  begin
+		ret := QRinput_append(input, QR_MODE_8, size, data);
+	end else begin
+		ret := Split_splitStringToQRinput(PAnsiChar(data), input, hint, casesensitive);
+	end;
+	if ret < 0 then
+  begin
+		QRinput_free(input);
+		Result := nil;
+    Exit;
+	end;
+	codes := QRcode_encodeInputToStructured(input);
+	QRinput_free(input);
+
+	Result := codes;
 end;
 
 function QRcode_encodeDataStructured(size: Integer; const data: PByte;
   version: Integer; level: QRecLevel): PQRcode_List;
 begin
-
+	Result := QRcode_encodeDataStructuredReal(size, data, version, level, 1,
+    QR_MODE_NUL, 0);
 end;
 
-function QRcode_List_size(qrlist: PQRcode_List): Integer;
+function QRcode_encodeString8bitStructured(const str: PAnsiChar;
+  version: Integer; level: QRecLevel): PQRcode_List;
 begin
-
+	if str = nil then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
+	Result := QRcode_encodeDataStructured(lstrlen(str), PByte(str), version, level);
 end;
 
-procedure QRcode_List_free(qrlist: PQRcode_List);
+function QRcode_encodeStringStructured(const str: PAnsiChar; version: Integer;
+  level: QRecLevel; hint: QRencodeMode; casesensitive: Integer): PQRcode_List;
 begin
-
+	if str = nil then
+  begin
+//		errno := EINVAL;
+		Result := nil;
+    Exit;
+	end;
+	Result := QRcode_encodeDataStructuredReal(lstrlen(str), PByte(str),
+    version, level, 0, hint, casesensitive);
 end;
 
-procedure QRcode_APIVersion(major_version: PInteger; minor_version: PInteger;
-  micro_version: PInteger);
-begin
+{******************************************************************************
+ * System utilities
+ *****************************************************************************}
 
+procedure QRcode_APIVersion(major_ver, minor_ver, micro_ver: PInteger);
+begin
+	if major_ver <> nil then
+  begin
+		major_ver^ := MAJOR_VERSION;
+	end;
+	if minor_ver <> nil then
+  begin
+		minor_ver^ := MINOR_VERSION;
+	end;
+	if micro_ver <> nil then
+  begin
+		micro_ver^ := MICRO_VERSION;
+	end;
 end;
 
 function QRcode_APIVersionString(): PAnsiChar;
 begin
-
+	Result := PAnsiChar(Format('%d.%d.%d', [MAJOR_VERSION,
+    MINOR_VERSION, MICRO_VERSION]));
 end;
 
 procedure QRcode_clearCache();
 begin
-
+	QRspec_clearCache();
+	MQRspec_clearCache();
+	free_rs_cache();
 end;
 
 end.

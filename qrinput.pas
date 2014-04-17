@@ -5,6 +5,211 @@ interface
 uses
   Windows, bitstream, struct;
 
+{******************************************************************************
+ * Input data (qrinput.c)
+ *****************************************************************************}
+
+{**
+ * Instantiate an input data object. The version is set to 0 (auto-select)
+ * and the error correction level is set to QR_ECLEVEL_L.
+ * @return an input object (initialized). On error, NULL is returned and errno
+ *         is set to indicate the error.
+ * @throw ENOMEM unable to allocate memory.
+ *}
+function QRinput_new(): PQRinput;
+
+{**
+ * Instantiate an input data object.
+ * @param version version number.
+ * @param level Error correction level.
+ * @return an input object (initialized). On error, NULL is returned and errno
+ *         is set to indicate the error.
+ * @throw ENOMEM unable to allocate memory for input objects.
+ * @throw EINVAL invalid arguments.
+ *}
+function QRinput_new2(version: Integer; level: QRecLevel): PQRinput;
+
+{**
+ * Instantiate an input data object. Object's Micro QR Code flag is set.
+ * Unlike with full-sized QR Code, version number must be specified (>0).
+ * @param version version number (1--4).
+ * @param level Error correction level.
+ * @return an input object (initialized). On error, NULL is returned and errno
+ *         is set to indicate the error.
+ * @throw ENOMEM unable to allocate memory for input objects.
+ * @throw EINVAL invalid arguments.
+ *}
+function QRinput_newMQR(version: Integer; level: QRecLevel): PQRinput;
+
+{**
+ * Append data to an input object.
+ * The data is copied and appended to the input object.
+ * @param input input object.
+ * @param mode encoding mode.
+ * @param size size of data (byte).
+ * @param data a pointer to the memory area of the input data.
+ * @retval 0 success.
+ * @retval -1 an error occurred and errno is set to indeicate the error.
+ *            See Execptions for the details.
+ * @throw ENOMEM unable to allocate memory.
+ * @throw EINVAL input data is invalid.
+ *
+ *}
+function QRinput_append(input: PQRinput; mode: QRencodeMode; size: Integer;
+  const data: PByte): Integer;
+
+{**
+ * Append ECI header.
+ * @param input input object.
+ * @param ecinum ECI indicator number (0 - 999999)
+ * @retval 0 success.
+ * @retval -1 an error occurred and errno is set to indeicate the error.
+ *            See Execptions for the details.
+ * @throw ENOMEM unable to allocate memory.
+ * @throw EINVAL input data is invalid.
+ *
+ *}
+function QRinput_appendECIheader(input: PQRinput; ecinum: Cardinal): Integer;
+
+{**
+ * Get current version.
+ * @param input input object.
+ * @return current version.
+ *}
+function QRinput_getVersion(input: PQRinput): Integer;
+
+{**
+ * Set version of the QR code that is to be encoded.
+ * This function cannot be applied to Micro QR Code.
+ * @param input input object.
+ * @param version version number (0 = auto)
+ * @retval 0 success.
+ * @retval -1 invalid argument.
+ *}
+function QRinput_setVersion(input: PQRinput; version: Integer): Integer;
+
+{**
+ * Get current error correction level.
+ * @param input input object.
+ * @return Current error correcntion level.
+ *}
+function QRinput_getErrorCorrectionLevel(input: PQRinput): QRecLevel;
+
+{**
+ * Set error correction level of the QR code that is to be encoded.
+ * This function cannot be applied to Micro QR Code.
+ * @param input input object.
+ * @param level Error correction level.
+ * @retval 0 success.
+ * @retval -1 invalid argument.
+ *}
+function QRinput_setErrorCorrectionLevel(input: PQRinput; level: QRecLevel): Integer;
+
+{**
+ * Set version and error correction level of the QR code at once.
+ * This function is recommened for Micro QR Code.
+ * @param input input object.
+ * @param version version number (0 = auto)
+ * @param level Error correction level.
+ * @retval 0 success.
+ * @retval -1 invalid argument.
+ *}
+function QRinput_setVersionAndErrorCorrectionLevel(input: PQRinput;
+  version: Integer; level: QRecLevel): Integer;
+
+{**
+ * Free the input object.
+ * All of data chunks in the input object are freed too.
+ * @param input input object.
+ *}
+procedure QRinput_free(input: PQRinput);
+
+{**
+ * Validate the input data.
+ * @param mode encoding mode.
+ * @param size size of data (byte).
+ * @param data a pointer to the memory area of the input data.
+ * @retval 0 success.
+ * @retval -1 invalid arguments.
+ *}
+function QRinput_check(mode: QRencodeMode; size: Integer;
+  const data: PByte): Integer;
+
+{**
+ * Set of QRinput for structured symbols.
+ *}
+//typedef struct _QRinput_Struct QRinput_Struct;
+
+{**
+ * Instantiate a set of input data object.
+ * @return an instance of QRinput_Struct. On error, NULL is returned and errno
+ *         is set to indicate the error.
+ * @throw ENOMEM unable to allocate memory.
+ *}
+//extern QRinput_Struct *QRinput_Struct_new(void);
+
+{**
+ * Set parity of structured symbols.
+ * @param s structured input object.
+ * @param parity parity of s.
+ *}
+procedure QRinput_Struct_setParity(s: PQRinput_Struct; parity: Byte);
+
+{**
+ * Append a QRinput object to the set. QRinput created by QRinput_newMQR()
+ * will be rejected.
+ * @warning never append the same QRinput object twice or more.
+ * @param s structured input object.
+ * @param input an input object.
+ * @retval >0 number of input objects in the structure.
+ * @retval -1 an error occurred. See Exceptions for the details.
+ * @throw ENOMEM unable to allocate memory.
+ * @throw EINVAL invalid arguments.
+ *}
+function QRinput_Struct_appendInput(s: PQRinput_Struct; input: PQRinput): Integer;
+
+{**
+ * Free all of QRinput in the set.
+ * @param s a structured input object.
+ *}
+procedure QRinput_Struct_free(s: PQRinput_Struct);
+
+{**
+ * Split a QRinput to QRinput_Struct. It calculates a parity, set it, then
+ * insert structured-append headers. QRinput created by QRinput_newMQR() will
+ * be rejected.
+ * @param input input object. Version number and error correction level must be
+ *        set.
+ * @return a set of input data. On error, NULL is returned, and errno is set
+ *         to indicate the error. See Exceptions for the details.
+ * @throw ERANGE input data is too large.
+ * @throw EINVAL invalid input data.
+ * @throw ENOMEM unable to allocate memory.
+ *}
+function QRinput_splitQRinputToStruct(input: PQRinput): PQRinput_Struct;
+
+{**
+ * Insert structured-append headers to the input structure. It calculates
+ * a parity and set it if the parity is not set yet.
+ * @param s input structure
+ * @retval 0 success.
+ * @retval -1 an error occurred and errno is set to indeicate the error.
+ *            See Execptions for the details.
+ * @throw EINVAL invalid input object.
+ * @throw ENOMEM unable to allocate memory.
+ *}
+function QRinput_Struct_insertStructuredAppendHeaders(s: PQRinput_Struct): Integer;
+
+{**
+ * Set FNC1-1st position flag.
+ *}
+function QRinput_setFNC1First(input: PQRinput): Integer;
+
+{**
+ * Set FNC1-2nd position flag and application identifier.
+ *}
+function QRinput_setFNC1Second(input: PQRinput; appid: Byte): Integer;
+
 function QRinput_isSplittableMode(mode: QRencodeMode): Boolean;
 
 {**
@@ -40,9 +245,6 @@ function QRinput_lengthOfCode(mode: QRencodeMode; version, bits: Integer): Integ
 function QRinput_insertStructuredAppendHeader(input: PQRinput;
   size, number: Integer; parity: Byte): Integer;
 {$ENDIF}
-
-function QRinput_check(mode: QRencodeMode; size: Integer;
-  const data: PByte): Integer;
 
 implementation
 

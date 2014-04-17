@@ -373,7 +373,7 @@ begin
   end;
 end;
 
-      /* We have found another option-ARGV-element.
+      //* We have found another option-ARGV-element.
 	 Skip the initial punctuation.  */
 
       nextchar = (argv[optind] + 1

@@ -52,6 +52,10 @@ const
   QRSPEC_MODEID_STRUCTURE  = 3;
   QRSPEC_MODEID_TERMINATOR = 0;
 
+  MAJOR_VERSION = 3;
+  MINOR_VERSION = 4;
+  MICRO_VERSION = 3;
+
 type
   PBitStream = ^TBitStream;
   TBitStream = record
@@ -180,8 +184,8 @@ type
  *     `-------- non-data modules (format, timing, etc.)
  * </pre>
  *}
-  PQRcode = ^QRcode;
-  QRcode = record
+  PQRcode = ^TQRcode;
+  TQRcode = record
     version: Integer;         ///< version of the symbol
     width: Integer;           ///< width of the symbol
     data: PByte; ///< symbol data
