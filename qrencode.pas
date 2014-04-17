@@ -420,6 +420,12 @@ type
     count: Integer;
   end;
 
+function PRSblockIndex(ASrc: PRSblock; AIndex: Integer): PRSblock;
+begin
+  Result := ASrc;
+  Inc(Result, AIndex);
+end;
+
 procedure RSblock_initBlock(block: PRSblock; dl: Integer; data: PByte;
   el: Integer; ecc: PByte; rs: PRS);
 begin
@@ -531,14 +537,14 @@ begin
   end;
 
 	Result.blocks := QRspec_rsBlockNum(spec);
-	Result.rsblock := (RSblock *)calloc(Result.blocks, sizeof(RSblock));
-	if(Result.rsblock = nil then
-  begin
-		QRraw_free(Result);
+  try
+    GetMem(Result.rsblock, SizeOf(TRSblock));
+  except
+    QRraw_free(Result);
 		Result := nil;
     Exit;
-	end;
-	ret := RSblock_init(raw.rsblock, spec, raw.datacode, raw.ecccode);
+  end;
+	ret := RSblock_init(Result.rsblock, spec, Result.datacode, Result.ecccode);
 	if ret < 0 then
   begin
 		QRraw_free(Result);
@@ -547,6 +553,40 @@ begin
 	end;
 
 	Result.count := 0;
+end;
+
+{**
+ * Return a code (byte).
+ * This function can be called iteratively.
+ * @param raw raw code.
+ * @return code
+ *}
+function QRraw_getCode(raw: PQRRawCode): Byte;
+var
+  col, row: Integer;
+  ret: Byte;
+begin
+	if raw.count < raw.dataLength then
+  begin
+		row := raw.count mod raw.blocks;
+		col := raw.count div raw.blocks;
+		if (col >= raw.rsblock^.dataLength) then
+    begin
+			row := row + raw.b1;
+		end;
+//    ret = raw->rsblock[row].data[col];
+		ret := PIndex(PRSblockIndex(raw.rsblock, row).data, col)^;
+	end else if raw.count < (raw.dataLength + raw.eccLength) then
+  begin
+		row := (raw.count - raw.dataLength) mod raw.blocks;
+		col := (raw.count - raw.dataLength) div raw.blocks;
+		ret := PIndex(PRSblockIndex(raw.rsblock, row).ecc, col)^;
+	end else begin
+		Result := 0;
+    Exit;
+	end;
+	Inc(raw.count);
+	Result := ret;
 end;
 
 function QRinput_new(): PQRinput;
