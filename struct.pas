@@ -2,6 +2,9 @@ unit struct;
 
 interface
 
+uses
+  Windows;
+
 const
 {**
  * Maximum version (size) of QR-code symbol.
@@ -207,6 +210,8 @@ function PIndex(ASrc: PByte; AIndex: Integer): PByte; overload;
 function PIndex(ASrc: PInteger; AIndex: Integer): PInteger; overload;
 function PIndex(ASrc: PData_t; AIndex: Integer): PData_t; overload;
 
+function strdup(const s: PAnsiChar): PAnsiChar;
+
 implementation
 
 function PIndex(ASrc: PAnsiChar; AIndex: Integer): PAnsiChar;
@@ -231,6 +236,19 @@ function PIndex(ASrc: PData_t; AIndex: Integer): PData_t;
 begin
   Result := ASrc;
   Inc(Result, AIndex);
+end;
+
+function strdup(const s: PAnsiChar): PAnsiChar;
+var
+  len: Cardinal;
+begin
+  len := lstrlen(s) + 1;
+  try
+    GetMem(Result, len);
+    CopyMemory(Result, s, len);
+  except
+    Result := nil;
+  end;
 end;
 
 end.

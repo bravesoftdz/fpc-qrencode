@@ -52,7 +52,7 @@ end;
 function init_rs_char(symsize, gfpoly, fcr, prim, nroots, pad: Integer): PRS;
 var
   i, j, sr, root, iprim: Integer;
-  index_of, alpha_to, genpoly: PbyteArray;
+  index_of, alpha_to, genpoly: PByteArray;
 begin
 {* Common code for intializing a Reed-Solomon control block (char or int symbols)
  * Copyright 2004 Phil Karn, KA9Q
@@ -98,7 +98,6 @@ begin
   end;
   index_of := PByteArray(Result.index_of);
   alpha_to := PByteArray(Result.alpha_to);
-  genpoly := PByteArray(Result.genpoly);
   {* Generate Galois field lookup tables *}
   {* log(zero) = -inf *}
   index_of[0] := Result.nn;
@@ -127,6 +126,7 @@ begin
   try
     {* Form RS code generator polynomial from its roots *}
     GetMem(Result.genpoly, nroots + 1);
+    genpoly := PByteArray(Result.genpoly);
   except
     FreeMem(Result.alpha_to);
     FreeMem(Result.index_of);
@@ -233,7 +233,7 @@ begin
   index_of := PByteArray(rs.index_of);
   alpha_to := PByteArray(rs.alpha_to);
   genpoly := PByteArray(rs.genpoly);
-  ZeroMemory(@parity, rs.nroots * SizeOf(data_t));
+  ZeroMemory(parity, rs.nroots * SizeOf(data_t));
   for i := 0 to rs.nn - rs.nroots - rs.pad - 1 do
   begin
     feedback := index_of[data_a[i] xor parity_a[0]];

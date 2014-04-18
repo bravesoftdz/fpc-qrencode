@@ -17,16 +17,6 @@ procedure BitStream_free(var bstream: PBitStream);
 
 implementation
 
-function BitStream_new(): PBitStream;
-begin
-  Result := GetMemory(SizeOf(TBitStream));
-  if Result <> nil then
-  begin
-    Result.length := 0;
-    Result.data := nil;
-  end;
-end;
-
 procedure BitStream_freeData(bstream: PBitStream);
 begin
   if (bstream <> nil) and (bstream.data <> nil) then
@@ -35,6 +25,17 @@ begin
     bstream.data := nil;
     bstream.length := 0;
   end;
+end;
+
+function BitStream_new(): PBitStream;
+begin
+  try
+    GetMem(Result, SizeOf(TBitStream));
+  except
+    Result := nil;
+  end;
+  Result.length := 0;
+  Result.data := nil;
 end;
 
 function BitStream_allocate(bstream: PBitStream; length: Integer): Integer;
@@ -47,6 +48,7 @@ begin
   try
     GetMem(bstream.data, length);
     bstream.length := length;
+    Result := 0;
   except
   end;
 end;
@@ -87,7 +89,7 @@ function BitStream_newFromBytes(size: Integer; data: PByte): PBitStream;
 var
   mask: Byte;
   i, j: Integer;
-  p, pd: PByte;
+  p: PByte;
 begin
   Result := BitStream_new();
   if (Result = nil) then  Exit;
@@ -97,15 +99,14 @@ begin
     BitStream_free(Result);
     Exit;
   end;
-  pd := data;
+
   p := Result.data;
   for i := 0 to size - 1 do
   begin
     mask := $80;
-    Inc(pd, i);
     for j := 0 to 7 do
     begin
-      if (pd^ and mask) <> 0 then
+      if (PIndex(Result.data, i)^ and mask) <> 0 then
         p^ := 1
       else
         p^ := 0;
@@ -121,7 +122,7 @@ var
   iLen: Integer;
 begin
   Result := -1;
-  if (arg = nil) or (bstream = nil) then
+  if arg = nil then
     Exit;
 
   if arg.length = 0 then
@@ -140,17 +141,18 @@ begin
   end;
   try
     GetMem(data, bstream.length + arg.length);
-    p := data;
-    CopyMemory(data, bstream.data, bstream.length);
-    Inc(p, bstream.length);
-    CopyMemory(p, arg.data, arg.length);
-    iLen := bstream.length + arg.length;
-    BitStream_freeData(bstream);
-    bstream.length := iLen;
-    bstream.data := data;
-    Result := 0;
   except
-  end;  
+    Exit;
+  end;
+  p := data;
+  CopyMemory(data, bstream.data, bstream.length);
+  Inc(p, bstream.length);
+  CopyMemory(p, arg.data, arg.length);
+  iLen := bstream.length + arg.length;
+  BitStream_freeData(bstream);
+  bstream.length := iLen;
+  bstream.data := data;
+  Result := 0;
 end;
 
 function BitStream_appendNum(bstream: PBitStream; bits: Integer;

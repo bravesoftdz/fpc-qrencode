@@ -31,19 +31,6 @@ begin
   Result := QRinput_lookAnTable(Ord(c)) >= 0;
 end;
 
-function strdup(const s: PAnsiChar): PAnsiChar;
-var
-  len: Cardinal;
-begin
-  len := StrLen(s);
-  try
-    GetMem(Result, len);
-    CopyMemory(Result, s, len);
-  except
-    Result := nil;
-  end;
-end;
-
 function Split_identifyMode(const str: PAnsiChar; hint: QRencodeMode): QRencodeMode;
 var
   c, d: AnsiChar;
@@ -53,6 +40,8 @@ begin
   c := str^;
   if c = #0 then
     Result := QR_MODE_NUL
+  else if isdigit(c) then
+    Result := QR_MODE_NUM
   else if isalnum(c) then
     Result := QR_MODE_AN
   else if hint = QR_MODE_KANJI then
@@ -80,8 +69,7 @@ begin
 	la := QRspec_lengthIndicator(QR_MODE_AN, input.version);
 	ln := QRspec_lengthIndicator(QR_MODE_NUM, input.version);
 	l8 := QRspec_lengthIndicator(QR_MODE_8, input.version);
-  p := str;
-  Inc(p);
+  p := PIndex(str, 1);
   while p^ <> #0 do
   begin
     mode := Split_identifyMode(p, hint);
