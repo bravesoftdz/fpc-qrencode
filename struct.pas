@@ -212,6 +212,8 @@ function PIndex(ASrc: PData_t; AIndex: Integer): PData_t; overload;
 
 function strdup(const s: PAnsiChar): PAnsiChar;
 
+function btoi(b: Boolean): Integer;
+
 implementation
 
 function PIndex(ASrc: PAnsiChar; AIndex: Integer): PAnsiChar;
@@ -249,6 +251,14 @@ begin
   except
     Result := nil;
   end;
+end;
+
+function btoi(b: Boolean): Integer;
+begin
+  if b then
+    Result := 1
+  else
+    Result := 0;
 end;
 
 end.

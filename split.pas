@@ -23,7 +23,7 @@ implementation
 
 function isdigit(c: AnsiChar): Boolean;
 begin
-  Result := (c <> #0) and (Ord(c) - Ord('0') < 10);
+  Result := (Ord(c) - Ord('0') < 10);
 end;
 
 function isalnum(c: AnsiChar): Boolean;
@@ -46,12 +46,12 @@ begin
     Result := QR_MODE_AN
   else if hint = QR_MODE_KANJI then
   begin
-    d := PAnsiChar(Cardinal(str) + SizeOf(AnsiChar))^;
+    d := PIndex(str, 1)^;
     if d <> #0 then
     begin
-      word := Ord(c) shl 8 or Ord(d);
-      if (word >= $8140) and (word <= $9ffc)
-        or (word >= $e040) and (word <= $ebbf) then
+      word := (Ord(c) shl 8) or Ord(d);
+      if ((word >= $8140) and (word <= $9ffc))
+        or ((word >= $e040) and (word <= $ebbf)) then
       begin
         Result := QR_MODE_KANJI;
       end;
@@ -237,7 +237,6 @@ end;
 function Split_splitString(const str: PAnsiChar; input: PQRinput;
   hint: QRencodeMode): Integer;
 var
-  p: PAnsiChar;
   len: Integer;
   mode: QRencodeMode;
 begin
@@ -265,9 +264,7 @@ begin
 	else if len < 0 then
     Result := -1
   else begin
-    p := str;
-    Inc(p, len);
-	  Result := Split_splitString(p, input, hint);
+	  Result := Split_splitString(PIndex(str, len), input, hint);
   end;
 end;
 

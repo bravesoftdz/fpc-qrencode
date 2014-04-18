@@ -22,7 +22,6 @@ const
  * Version and capacity
  *****************************************************************************}
 
-const
 {**
  * Maximum width of a symbol
  *}
@@ -303,7 +302,7 @@ begin
 	for y := 0 to 6 do
   begin
 		for x := 0 to 6 do
-			frame^ := s^;
+      PIndex(frame, x)^ := PIndex(s, x)^;
     Inc(frame, width);
     Inc(s, 7);
 	end;
@@ -345,7 +344,7 @@ begin
   {* Timing pattern *}
   p := PIndex(Result, 8);
   q := PIndex(Result, width * 8);
-  for x := 1 to width + 6 do
+  for x := 1 to width - 8 do
   begin
     p^ := $90 or (x and 1);
     q^ := $90 or (x and 1);

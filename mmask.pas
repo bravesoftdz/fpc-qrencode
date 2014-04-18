@@ -26,7 +26,7 @@ const
 type
   TMaskType = (mtMask0, mtMask1, mtMask2, mtMask3);
 
-  TMaskMaker = procedure(width: Integer; const s, d: PByte);
+  TMaskMaker = procedure(width: Integer; const s: PByte; d: PByte);
 
 procedure MMask_writeFormatInformation(version, width: Integer; frame: PByte;
   mask: Integer; level: QRecLevel);
@@ -34,50 +34,20 @@ var
   fr: Cardinal;
   v: Byte;
   i: Integer;
-  a: PByteArray;
 begin
-  a := PByteArray(frame);
   fr := MQRspec_getFormatInfo(mask, version, level);
   for i := 0 to 7 do
   begin
     v := $84 or (fr and 1);
-//    PByte(Cardinal(frame) + (width * (i + 1) + 8))^ := v;
-    a[width * (i + 1) + 8] := v;
+    PIndex(frame, width * (i + 1) + 8)^ := v;
     fr := fr shr 1;
   end;
   for i := 0 to 6 do
   begin
     v := $84 or (fr and 1);
-//    PByte(Cardinal(frame) + (width * 8 + 7 - i))^ := v;
-    a[width * 8 + 7 - i] := v;
+    PIndex(frame, width * 8 + 7 - i)^ := v;
     fr := fr shr 1;
   end;     
-end;
-
-function MMask_evaluateSymbol(width: Integer; frame: PByte): Integer;
-var
-  x, y: Integer;
-  p: PByte;
-  sum1, sum2: Integer;
-begin
-  sum1 := 0;
-  sum2 := 0;
-
-  p := frame;
-  Inc(p, width * (width - 1));
-  for x := 1 to width - 1 do
-    sum1 := sum1 + PIndex(p, x)^ and 1;
-  p := frame;
-  Inc(p, width * 2 - 1);
-  for y := 1 to width - 1 do
-  begin
-    sum2 := sum2 + (p^ and 1);
-    Inc(p, width);
-  end;
-  if sum1 <= sum2 then
-    Result := sum1 * 16 + sum2
-  else
-    Result := sum2 * 16 + sum1;
 end;
 
 procedure Mask_mask(width: Integer; s, d: PByte; mask: TMaskType);
@@ -111,22 +81,22 @@ begin
   end;
 end;
 
-procedure Mask_mask0(width: Integer; const s, d: PByte);
+procedure Mask_mask0(width: Integer; const s: PByte; d: PByte);
 begin
   Mask_mask(width, s, d, mtMask0);
 end;
 
-procedure Mask_mask1(width: Integer; const s, d: PByte);
+procedure Mask_mask1(width: Integer; const s: PByte; d: PByte);
 begin
 	Mask_mask(width, s, d, mtMask1);
 end;
 
-procedure Mask_mask2(width: Integer; const s, d: PByte);
+procedure Mask_mask2(width: Integer; const s: PByte; d: PByte);
 begin
 	Mask_mask(width, s, d, mtMask2);
 end;
 
-procedure Mask_mask3(width: Integer; const s, d: PByte);
+procedure Mask_mask3(width: Integer; const s: PByte; d: PByte);
 begin
 	Mask_mask(width, s, d, mtMask3);
 end;
@@ -135,6 +105,22 @@ var
   maskMakers: array[0..maskNum - 1] of TMaskMaker = (
     Mask_mask0, Mask_mask1, Mask_mask2, Mask_mask3
   );
+
+{$IFDEF WITH_TESTS}
+function MMask_makeMaskedFrame(width: Integer; frame: PByte; mask: Integer): PByte;
+var
+  masked: PByte;
+begin
+  try
+    GetMem(masked, width * width);
+  except
+    Result := nil;
+    Exit;
+  end;
+  maskMakers[mask](width, frame, masked);
+  Result := masked;    
+end;
+{$ENDIF}
 
 function MMask_makeMask(version: Integer; frame: PByte; mask: Integer;
   level: QRecLevel): PByte;
@@ -158,6 +144,31 @@ begin
   maskMakers[mask](width, frame, masked);
   MMask_writeFormatInformation(version, width, masked, mask, level);
   Result := masked;
+end;
+
+function MMask_evaluateSymbol(width: Integer; frame: PByte): Integer;
+var
+  x, y: Integer;
+  p: PByte;
+  sum1, sum2: Integer;
+begin
+  sum1 := 0;
+  sum2 := 0;
+
+  p := PIndex(frame, width * (width - 1));
+  for x := 1 to width - 1 do
+    sum1 := sum1 + (PIndex(p, x)^ and 1);
+
+  p := PIndex(frame, width * 2 - 1);
+  for y := 1 to width - 1 do
+  begin
+    sum2 := sum2 + (p^ and 1);
+    Inc(p, width);
+  end;
+  if sum1 <= sum2 then
+    Result := sum1 * 16 + sum2
+  else
+    Result := sum2 * 16 + sum1;
 end;
 
 function MMask_mask(version: Integer; frame: PByte; level: QRecLevel): PByte;
@@ -196,23 +207,5 @@ begin
   FreeMem(mask);
   Result := bestMask;
 end;
-
-{$IFDEF WITH_TESTS}
-
-function MMask_makeMaskedFrame(width: Integer; frame: PByte; mask: Integer): PByte;
-var
-  masked: PByte;
-begin
-  try
-    GetMem(masked, width * width);
-  except
-    Result := nil;
-    Exit;
-  end;
-  maskMakers[mask](width, frame, masked);
-  Result := masked;    
-end;
-
-{$ENDIF}
 
 end.

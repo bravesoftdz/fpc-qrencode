@@ -295,7 +295,7 @@ begin
   bits := lengthTableBits[Integer(mode)][l];
   words := (1 shl bits) - 1;
   if mode = QR_MODE_KANJI then
-    words := words + 2;   // the number of bytes is required
+    words := words * 2;   // the number of bytes is required
   Result := words;
 end;
 

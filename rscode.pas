@@ -10,7 +10,7 @@ uses
  *}
 
 function init_rs(symsize, gfpoly, fcr, prim, nroots, pad: Integer): PRS;
-procedure encode_rs_char(rs: PRS; const data, parity: PData_t);
+procedure encode_rs_char(rs: PRS; const data: PData_t; parity: PData_t);
 procedure free_rs_char(rs: PRS);
 procedure free_rs_cache();
 
@@ -75,6 +75,7 @@ begin
 
   try
     GetMem(Result, SizeOf(TRS));
+    ZeroMemory(Result, SizeOf(TRS));
   except
     Exit;
   end;
@@ -82,14 +83,14 @@ begin
   Result.nn := (1 shl symsize) - 1;
   Result.pad := pad;
   try
-    GetMem(Result.alpha_to, Result.nn + 1);
+    GetMem(Result.alpha_to, SizeOf(data_t) * (Result.nn + 1));
   except
     FreeMem(Result);
     Result := nil;
     Exit;
   end;
   try
-    GetMem(Result.index_of, Result.nn + 1);
+    GetMem(Result.index_of, SizeOf(data_t) * (Result.nn + 1));
   except
     FreeMem(Result.alpha_to);
     FreeMem(Result);
@@ -125,7 +126,7 @@ begin
   end;
   try
     {* Form RS code generator polynomial from its roots *}
-    GetMem(Result.genpoly, nroots + 1);
+    GetMem(Result.genpoly, SizeOf(data_t) * (nroots + 1));
     genpoly := PByteArray(Result.genpoly);
   except
     FreeMem(Result.alpha_to);
@@ -194,6 +195,34 @@ begin
   Result := rs;
 end;
 
+procedure free_rs_char(rs: PRS);
+begin
+  if rs <> nil then
+  begin
+    if rs.alpha_to <> nil then
+      FreeMem(rs.alpha_to);
+    if rs.index_of <> nil then
+      FreeMem(rs.index_of);
+    if rs.genpoly <> nil then
+      FreeMem(rs.genpoly);
+    FreeMem(rs);
+  end;
+end;
+
+procedure free_rs_cache();
+var
+  rs, next: PRS;
+begin
+  rs := rslist;
+  while (rs <> nil) do
+  begin
+    next := rs.next;
+    free_rs_char(rs);
+    rs := next;
+  end;
+  rslist := nil;
+end;
+
 {* The guts of the Reed-Solomon encoder, meant to be #included
  * into a function body with the following typedefs, macros and variables supplied
  * according to the code parameters:
@@ -222,7 +251,7 @@ end;
  * May be used under the terms of the GNU Lesser General Public License (LGPL)
  *}
 
-procedure encode_rs_char(rs: PRS; const data, parity: PData_t);
+procedure encode_rs_char(rs: PRS; const data: PData_t; parity: PData_t);
 var
   i, j: Integer;
   feedback: data_t;
@@ -239,6 +268,12 @@ begin
     feedback := index_of[data_a[i] xor parity_a[0]];
     if feedback <> rs.nn then   {* feedback term is non-zero *}
     begin
+      {$IFDEF UNNORMALIZED}
+      {* This line is unnecessary when GENPOLY[NROOTS] is unity, as it must
+       * always be for the polynomials constructed by init_rs()
+       *}
+      feedback := modnn(rs, rs.nn - genpoly[rs.nroots] + feedback);
+      {$ENDIF}    
       for j := 1 to rs.nroots - 1 do
         parity_a[j] := parity_a[j]
           xor alpha_to[feedback + genpoly[rs.nroots - j]];
@@ -250,28 +285,6 @@ begin
     else
       parity_a[rs.nroots - 1] := 0;
   end;
-end;
-
-procedure free_rs_char(rs: PRS);
-begin
-  FreeMem(rs.alpha_to, 0);
-  FreeMem(rs.index_of, 0);
-  FreeMem(rs.genpoly, 0);
-  FreeMem(rs);
-end;
-
-procedure free_rs_cache();
-var
-  rs, next: PRS;
-begin
-  rs := rslist;
-  while (rs <> nil) do
-  begin
-    next := rs.next;
-    free_rs_char(rs);
-    rs := next;
-  end;
-  rslist := nil;
 end;
 
 end.

@@ -585,6 +585,7 @@ begin
     begin
 			QRinput_free(Result);
 			Result := nil;
+      Exit;
 		end;
 		QRinput_appendEntry(Result, e);
 		list := list.next;
@@ -703,7 +704,7 @@ begin
     end;
 	end;
 
-	if (entry.size - words * 3 = 1) then
+	if (entry.size - words * 3) = 1 then
   begin
 		val := PIndex(entry.data, words * 3)^ - Ord('0');
 		ret := BitStream_appendNum(entry.bstream, 4, val);
@@ -712,7 +713,7 @@ begin
       BitStream_free(entry.bstream);
       Exit;
     end;
-	end else if (entry.size - words * 3 = 2) then
+	end else if (entry.size - words * 3) = 2 then
   begin
 		val := (PIndex(entry.data, words * 3)^ - Ord('0')) * 10;
 		val := val + (PIndex(entry.data, words * 3 + 1)^ - Ord('0'));
@@ -764,7 +765,7 @@ begin
   Result := 0;
 	for i := 0 to size - 1 do
   begin
-		if QRinput_lookAnTable(Ord(Pindex(data, i)^)) < 0 then
+		if QRinput_lookAnTable(Ord(PIndex(data, i)^)) < 0 then
     begin
 			Result := -1;
       Exit;
@@ -1046,7 +1047,8 @@ begin
     end;
 	end;
 
-	for i := 0 to entry.size - 1 do
+  i := 0;
+  while i < entry.size do
   begin
 		val := (Cardinal(PIndex(entry.data, i)^) shl 8) or PIndex(entry.data, i + 1)^;
 		if val <= $9ffc then
@@ -1062,6 +1064,7 @@ begin
       BitStream_free(entry.bstream);
       Exit;
     end;
+    Inc(i, 2);
 	end;
 
 	Result := 0;
@@ -1343,7 +1346,8 @@ begin
 	list := input.head;
 	while list <> nil do
   begin
-		Result := QRinput_estimateBitStreamSizeOfEntry(list, version, input.mqr);
+		Result := Result +
+      QRinput_estimateBitStreamSizeOfEntry(list, version, input.mqr);
 		list := list.next;
 	end;
 end;
@@ -1388,7 +1392,7 @@ begin
 			remain := payload - chunks * 10;
 			size := chunks * 3;
 			if remain >= 7 then
-				size := 2
+				size := size + 2
 			else if remain >= 4 then
 				size := size + 1;
 		end;
@@ -1584,7 +1588,7 @@ end;
  *}
 function QRinput_appendPaddingBit(bstream: PBitStream; input: PQRinput): Integer;
 var
-  bits, maxbits, words, maxwords, i, ret: Integer;
+  bits, maxbits, words, maxwords, i: Integer;
   padding: PBitStream;
   padbuf: PByte;
   padlen: Integer;
@@ -1621,11 +1625,10 @@ begin
     Result := -1;
     Exit;
   end;
-	ret := BitStream_appendNum(padding, words * 8 - bits, 0);
-	if (ret < 0) then
+	Result := BitStream_appendNum(padding, words * 8 - bits, 0);
+	if (Result < 0) then
   begin
     BitStream_free(padding);
-    Result := ret;
     Exit;
   end;
 
@@ -1647,12 +1650,11 @@ begin
         PIndex(padbuf, i)^ := $ec;
     end;
 
-    ret := BitStream_appendBytes(padding, padlen, padbuf);
+    Result := BitStream_appendBytes(padding, padlen, padbuf);
     FreeMem(padbuf);
-    if (ret < 0) then
+    if (Result < 0) then
     begin
       BitStream_free(padding);
-      Result := ret;
       Exit;
     end;
 	end;
@@ -1701,8 +1703,8 @@ begin
 
 	if (maxbits - bits) <= termbits then
   begin
-		Result := BitStream_appendNum(bstream, maxbits - bits, 0);
-		Exit;
+		ret := BitStream_appendNum(bstream, maxbits - bits, 0);
+		goto done;
 	end;
 
 	bits := bits + termbits;
@@ -2030,38 +2032,6 @@ begin
 	Result := 0;
 end;
 
-function QRinput_Struct_insertStructuredAppendHeaders(s: PQRinput_Struct): Integer;
-var
-  i, num: Integer;
-  list: PQRinput_InputList;
-begin
-	if s.parity < 0 then
-		QRinput_Struct_calcParity(s);
-
-	num := 0;
-	list := s.head;
-	while list <> nil do
-  begin
-		Inc(num);
-		list := list.next;
-	end;
-	i := 1;
-	list := s.head;
-	while list <> nil do
-  begin
-		if QRinput_insertStructuredAppendHeader(
-      list.input, num, i, s.parity) <> 0 then
-    begin
-      Result := -1;
-      Exit;
-    end;
-		Inc(i);
-		list := list.next;
-	end;
-
-	Result := 0;
-end;
-
 function QRinput_splitQRinputToStruct(input: PQRinput): PQRinput_Struct;
 label
   done;
@@ -2187,6 +2157,38 @@ done:
 	QRinput_free(input);
 	QRinput_Struct_free(s);
 	Result := nil;
+end;
+
+function QRinput_Struct_insertStructuredAppendHeaders(s: PQRinput_Struct): Integer;
+var
+  i, num: Integer;
+  list: PQRinput_InputList;
+begin
+	if s.parity < 0 then
+		QRinput_Struct_calcParity(s);
+
+	num := 0;
+	list := s.head;
+	while list <> nil do
+  begin
+		Inc(num);
+		list := list.next;
+	end;
+	i := 1;
+	list := s.head;
+	while list <> nil do
+  begin
+		if QRinput_insertStructuredAppendHeader(
+      list.input, num, i, s.parity) <> 0 then
+    begin
+      Result := -1;
+      Exit;
+    end;
+		Inc(i);
+		list := list.next;
+	end;
+
+	Result := 0;
 end;
 
 {******************************************************************************

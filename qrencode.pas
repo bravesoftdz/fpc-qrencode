@@ -340,6 +340,7 @@ begin
 	Result.blocks := QRspec_rsBlockNum(spec);
   try
     GetMem(Result.rsblock, SizeOf(TRSblock));
+    ZeroMemory(Result.rsblock, SizeOf(TRSblock));
   except
     QRraw_free(Result);
 		Result := nil;
@@ -566,7 +567,7 @@ begin
 			y := 0;
 			x := x - 2;
 			filler.dir := 1;
-			if (not filler.mqr) and x = 6 then
+			if (filler.mqr = 0) and (x = 6) then
       begin
 				Dec(x);
 				y := 9;
@@ -578,7 +579,7 @@ begin
 			y := w - 1;
 			x := x - 2;
 			filler.dir := -1;
-			if ((not filler.mqr) and x) = 6 then
+			if (filler.mqr = 0) and (x = 6) then
       begin
 				Dec(x);
 				y := y - 8;
@@ -890,7 +891,7 @@ begin
 	for i := 0 to raw.dataLength + raw.eccLength - 1 do
   begin
 		code := MQRraw_getCode(raw);
-		if (raw.oddbits and i) = (raw.dataLength - 1) then
+		if (raw.oddbits <> 0) and (i = (raw.dataLength - 1)) then
     begin
 			bit := 1 shl (raw.oddbits - 1);
 			for j := 0 to raw.oddbits - 1 do
@@ -898,10 +899,8 @@ begin
 				p := FrameFiller_next(filler);
 				if p = nil then
           goto done;
-        if (bit and code) <> 0 then
-          p^ := $02 or 1
-        else
-  				p^ := $02 or 0;
+
+        p^ := $02 or btoi((bit and code) <> 0);
 				bit := bit shr 1;
 			end;
 		end else begin
@@ -911,10 +910,8 @@ begin
 				p := FrameFiller_next(filler);
 				if p = nil then
           goto done;
-        if (bit and code) <> 0 then
-          p^ := $02 or 1
-        else
-  				p^ := $02 or 0;
+
+        p^ := $02 or btoi((bit and code) <> 0);
 				bit := bit shr 1;
 			end;
 		end;
@@ -1021,7 +1018,7 @@ begin
     Exit;
 	end;
 
-	if(mqr <> 0) then
+	if (mqr <> 0) then
   begin
 		input := QRinput_newMQR(version, level);
 	end else begin
