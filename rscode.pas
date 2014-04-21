@@ -149,7 +149,6 @@ begin
   root := fcr * prim;
   for i := 0 to nroots - 1 do
   begin
-    root := root + prim;
     genpoly[i + 1] := 1;
 
     {* Multiply rs->genpoly[] by  @**(root + x) *}
@@ -163,6 +162,7 @@ begin
     end;
     {* rs->genpoly[0] can never be zero *}
     genpoly[0] := alpha_to[modnn(Result, index_of[genpoly[0]] + root)];
+    root := root + prim;
   end;
   {* convert rs->genpoly[] to index form for quicker encoding *}
   for i := 0 to nroots do
@@ -276,7 +276,7 @@ begin
       {$ENDIF}    
       for j := 1 to rs.nroots - 1 do
         parity_a[j] := parity_a[j]
-          xor alpha_to[feedback + genpoly[rs.nroots - j]];
+          xor alpha_to[modnn(rs, feedback + genpoly[rs.nroots - j])];
     end;
     {* Shift *}
     MoveMemory(@parity_a[0], @parity_a[1], SizeOf(data_t) * (rs.nroots - 1));

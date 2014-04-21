@@ -23,7 +23,7 @@ implementation
 
 function isdigit(c: AnsiChar): Boolean;
 begin
-  Result := (Ord(c) - Ord('0') < 10);
+  Result := (c <> #0) and (Ord(c) - Ord('0') < 10);
 end;
 
 function isalnum(c: AnsiChar): Boolean;

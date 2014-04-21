@@ -1802,8 +1802,7 @@ function QRinput_mergeBitStream(input: PQRinput): PBitStream;
 var
   list: PQRinput_List;
   ret: Integer;
-begin
-
+begin            
 	if input.mqr <> 0 then
   begin
 		if (QRinput_createBitStream(input) < 0) then
@@ -2087,7 +2086,7 @@ begin
 			ret := QRinput_encodeBitStream(list, input.version, input.mqr);
 			if ret < 0 then
         goto done;
-			bits := bits +ret;
+			bits := bits + ret;
 			prev := list;
 			list := list.next;
 		end else begin

@@ -1288,7 +1288,7 @@ begin
     Exit;
 	end;
 	Result := QRcode_encodeDataStructuredReal(lstrlen(str), PByte(str),
-    version, level, 0, hint, casesensitive);
+    version, level, 0, hint, casesensitive);  
 end;
 
 {******************************************************************************

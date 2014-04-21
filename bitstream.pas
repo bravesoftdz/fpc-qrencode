@@ -106,7 +106,7 @@ begin
     mask := $80;
     for j := 0 to 7 do
     begin
-      if (PIndex(Result.data, i)^ and mask) <> 0 then
+      if (PIndex(data, i)^ and mask) <> 0 then
         p^ := 1
       else
         p^ := 0;

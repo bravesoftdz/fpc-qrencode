@@ -3,7 +3,7 @@ unit qrenc;
 interface
 
 uses
-  Windows, SysUtils, struct;
+  Windows, SysUtils, struct, Graphics;
 
 procedure qrencodeStructured(const intext: PByte; length: Integer;
   const outfile: PAnsiChar);
@@ -24,6 +24,7 @@ const
 
 type
   imageType = (
+    BMP_TYPE,
     PNG_TYPE,
     EPS_TYPE,
     SVG_TYPE,
@@ -51,7 +52,7 @@ var
   micro: Integer = 0;
   level: QRecLevel = QR_ECLEVEL_L;
   hint: QRencodeMode = QR_MODE_8;
-  fg_color: array[0..3] of Cardinal = (0, 0, 0, 0);
+  fg_color: array[0..3] of Cardinal = (0, 0, 0, 255);
   bg_color: array[0..3] of Cardinal = (255, 255, 255, 255);
 
   image_type: imageType = UTF8_TYPE;
@@ -170,6 +171,49 @@ var
 //		end;
 //	end;
 //end;
+
+function writeBMP(qrcode: PQRcode; const outfile: PAnsiChar): Integer;
+var
+  bmp: TBitmap;
+  realwidth, x, xx, y, m: Integer;
+  row, p, q: PByte;
+  bit: Integer;
+  pix: PRGBTriple;
+begin
+  realwidth := (qrcode.width + margin * 2) * size;
+  try
+    GetMem(row, (realwidth + 7) div 8);
+  except
+    Abort;
+  end;
+  bmp := TBitmap.Create;
+  try
+    p := qrcode.data;
+    for y := 0 to qrcode.width - 1 do
+    begin
+      FillChar(row, (realwidth + 7) div 8, $FF);
+      q := PIndex(row, margin * size div 8);
+      bit := 7 - (margin * size mod 8);
+      for x := 0 to qrcode.width - 1 do
+      begin
+        for xx := 0 to size - 1 do
+        begin
+          q^ := q^ xor ((p^ and 1) shl bit);
+          Dec(bit);
+          if bit < 0 then
+          begin
+            Inc(q);
+            bit := 7;
+          end;
+        end;
+        Inc(p);
+      end;
+    end;
+    bmp.SaveToFile(StrPas(outfile));
+  finally
+    FreeAndNil(bmp);
+  end;
+end;
 
 procedure writeUTF8_margin(var fp: Text; realwidth: Integer;
   const white, reset: PAnsiChar; use_ansi: Integer);
@@ -290,10 +334,11 @@ begin
 	qrcode := encode(intext, length);
 	if qrcode = nil then
   begin
-		Writeln('Failed to encode the input data');
+//		Writeln('Failed to encode the input data');
 		Abort;
 	end;
 	case (image_type) of
+    BMP_TYPE: writeBMP(qrcode, outfile);
 //		PNG_TYPE:
 //			writePNG(qrcode, outfile);
 //		EPS_TYPE:
@@ -312,7 +357,7 @@ begin
 		ANSIUTF8_TYPE: 
 			writeUTF8(qrcode, outfile, 1);
 		else begin
-			Writeln('Unknown image type.');
+//			Writeln('Unknown image type.');
       QRcode_free(qrcode);
 			Abort;
     end;
@@ -347,12 +392,10 @@ var
 begin
   i := 1;          
 	case image_type of
-		PNG_TYPE:
-			type_suffix := '.png';
-		EPS_TYPE:
-			type_suffix := '.eps';
-		SVG_TYPE:
-			type_suffix := '.svg';
+    BMP_TYPE: type_suffix := '.bmp';
+		PNG_TYPE: type_suffix := '.png';
+		EPS_TYPE: type_suffix := '.eps';
+		SVG_TYPE: type_suffix := '.svg';
 		ANSI_TYPE,
 		ANSI256_TYPE,
 		ASCII_TYPE,
@@ -360,20 +403,20 @@ begin
 		ANSIUTF8_TYPE:
 			type_suffix := '.txt';
 		else begin
-			Writeln('Unknown image type.');
+//			Writeln('Unknown image type.');
 			Abort;
     end;
 	end;
 
 	if outfile = nil then
   begin
-		Writeln('An output filename must be specified to store the structured images.');
+//		Writeln('An output filename must be specified to store the structured images.');
 		Abort;
 	end;
 	base := strdup(outfile);
 	if base = nil then
   begin
-		Writeln('Failed to allocate memory.');
+//		Writeln('Failed to allocate memory.');
 		Abort;
 	end;
 	suffix_size := lstrlen(type_suffix);
@@ -390,7 +433,7 @@ begin
 	qrlist := encodeStructured(intext, length);
 	if qrlist = nil then
   begin
-		Writeln('Failed to encode the input data');
+//		Writeln('Failed to encode the input data');
 		Abort;
 	end;
 
@@ -399,7 +442,7 @@ begin
   begin
 		if p.code = nil then
     begin
-			Writeln('Failed to encode the input data.');
+//			Writeln('Failed to encode the input data.');
 			Abort;
 		end;
 		if suffix <> nil then
@@ -409,6 +452,7 @@ begin
       filename := PAnsiChar(Format('%s-%.2d', [base, i]));
 		end;
 		case image_type of
+      BMP_TYPE: writeBMP(p.code, filename);
 //			PNG_TYPE:
 //				writePNG(p->code, filename);
 //			EPS_TYPE:
@@ -428,7 +472,7 @@ begin
 				writeUTF8(p.code, filename, 0);
 
 			else begin
-				Writeln('Unknown image type.');
+//				Writeln('Unknown image type.');
 				Abort;
       end;
 		end;
@@ -448,18 +492,19 @@ var
   pb: PByte;
   s: AnsiString;
 begin
-  version := 3;
-  structured := 1;
+  version := 1;
   margin := 2;
+  size := 3;  
 
   s := AnsiString(str);
   try
-    GetMem(pb, Length(s) * SizeOf(AnsiChar));
-    CopyMemory(pb, PAnsiChar(s), Length(s));
-    qrencodeStructured(pb, Length(s) * SizeOf(AnsiChar), 'F:\My Documents\CodeBlocks\qrencode\21.txt');
-//    structured := 0;
+    GetMem(pb, Length(s) * SizeOf(AnsiChar) + 1);
+    ZeroMemory(pb, Length(s) * SizeOf(AnsiChar) + 1);
 //    CopyMemory(pb, PAnsiChar(s), Length(s));
-//    qrcode(pb, Length(s) * SizeOf(AnsiChar), 'F:\My Documents\CodeBlocks\qrencode\22.txt');
+//    qrencodeStructured(pb, Length(s) * SizeOf(AnsiChar), 'F:\My Documents\CodeBlocks\qrencode\21.txt');
+    structured := 0;
+    CopyMemory(pb, PAnsiChar(s), Length(s));
+    qrcode(pb, Length(s) * SizeOf(AnsiChar), '22.txt');
     FreeMem(pb);
   except
   end;  
