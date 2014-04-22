@@ -5,42 +5,20 @@ interface
 uses
   Windows, SysUtils, struct, Graphics;
 
-procedure qrencodeStructured(const intext: PByte; length: Integer;
-  const outfile: PAnsiChar);
-
-procedure qrcode(const intext: PByte; length: Integer; const outfile: PAnsiChar);
-
-procedure qr(str: string);
+procedure qr(const AStr, AOut: AnsiString; AMargin, ASize, AEightBit, ACasesens,
+  AStructured, ALevel: Integer; AFore, ABack: TColor);
 
 implementation
 
 uses
   qrencode;
 
-const
-  INCHES_PER_METER = 100.0 / 2.54;
-  optstring = 'ho:l:s:v:m:d:t:Skci8MV';
-  MAX_DATA_SIZE = 7090 * 16; {* from the specification *}
-
 type
   imageType = (
-    BMP_TYPE,
-    PNG_TYPE,
-    EPS_TYPE,
-    SVG_TYPE,
-    ANSI_TYPE,
-    ANSI256_TYPE,
-    ASCII_TYPE,
-    ASCIIi_TYPE,
-    UTF8_TYPE,
-    ANSIUTF8_TYPE
+    BMP_TYPE
   );
 
 var
-//  hInput: THandle;
-//  hOutput: THandle;
-//  hError: THandle;
-
   casesensitive: Integer = 1;
   eightbit: Integer = 0;
   version: Integer = 0;
@@ -52,253 +30,78 @@ var
   micro: Integer = 0;
   level: QRecLevel = QR_ECLEVEL_L;
   hint: QRencodeMode = QR_MODE_8;
-  fg_color: array[0..3] of Cardinal = (0, 0, 0, 255);
-  bg_color: array[0..3] of Cardinal = (255, 255, 255, 255);
+  fg_color: array[0..3] of Byte = (0, 0, 0, 255);
+  bg_color: array[0..3] of Byte = (255, 255, 255, 255);
 
-  image_type: imageType = UTF8_TYPE;
-
-//  options: array[0..18] of option = (
-//    (name: 'help'; has_arg: no_argument; flag: nil; val: Ord('h')),
-//    (name: 'output'; has_arg: required_argument; flag: nil; val: Ord('o')),
-//    (name: 'level'; has_arg: required_argument; flag: nil; val: Ord('l')),
-//    (name: 'size'; has_arg: required_argument; flag: nil; val: Ord('s')),
-//    (name: 'symversion'; has_arg: required_argument; flag: nil; val: Ord('v')),
-//    (name: 'margin'; has_arg: required_argument; flag: nil; val: Ord('m')),
-//    (name: 'dpi'; has_arg: required_argument; flag: nil; val: Ord('d')),
-//    (name: 'type'; has_arg: required_argument; flag: nil; val: Ord('t')),
-//    (name: 'structured'; has_arg: no_argument; flag: nil; val: Ord('S')),
-//    (name: 'kanji'; has_arg: no_argument; flag: nil; val: Ord('k')),
-//    (name: 'casesensitive'; has_arg: no_argument; flag: nil; val: Ord('c')),
-//    (name: 'ignorecase'; has_arg: no_argument; flag: nil; val: Ord('i')),
-//    (name: '8bit'; has_arg: no_argument; flag: nil; val: Ord('8')),
-//    (name: 'rle'; has_arg: no_argument; flag: @rle; val: 1),
-//    (name: 'micro'; has_arg: no_argument; flag: nil; val: Ord('M')),
-//    (name: 'foreground'; has_arg: required_argument; flag: nil; val: Ord('f')),
-//    (name: 'background'; has_arg: required_argument; flag: nil; val: Ord('b')),
-//    (name: 'version'; has_arg: no_argument; flag: nil; val: Ord('V')),
-//    (name: nil; has_arg: 0; flag: nil; val: 0)
-//  );
-
-//procedure usage(help, longopt: Integer);
-//begin
-//  wsprintf('qrencode version %s' + #13#10
-//    + 'Copyright (C) 2006-2012 Kentaro Fukuchi' + #13#10,
-//    QRcode_APIVersionString());
-////	fprintf(stderr,
-////"qrencode version %s\n"
-////"Copyright (C) 2006-2012 Kentaro Fukuchi\n", QRcode_APIVersionString());
-//	if help <> 0 then
-//  begin
-//		if longopt <> 0 then
-//    begin
-//			Writeln(
-//'Usage: qrencode [OPTION]... [STRING]' + #13#10
-//+ 'Encode input data in a QR Code and save as a PNG or EPS image.' + #13#10#13#10
-//+ '  -h, --help   display the help message. -h displays only the help of short' + #13#10
-//+ '               options.' + #13#10#13#10
-//+ '  -o FILENAME, --output=FILENAME' + #13#10
-//+ '               write image to FILENAME. If ''-'' is specified, the result' + #13#10
-//+ '               will be output to standard output. If -S is given, structured' + #13#10
-//+ '               symbols are written to FILENAME-01.png, FILENAME-02.png, ...' + #13#10
-//+ '               (suffix is removed from FILENAME, if specified)' + #13#10
-//+ '  -s NUMBER, --size=NUMBER' + #13#10
-//+ '               specify module size in dots (pixels). (default=3)' + #13#10#13#10
-//+ '  -l {LMQH}, --level={LMQH}' + #13#10
-//+ '               specify error correction level from L (lowest) to H (highest).' + #13#10
-//+ '               (default=L)' + #13#10#13#10
-//+ '  -v NUMBER, --symversion=NUMBER' + #13#10
-//+ '               specify the version of the symbol. (default=auto)' + #13#10#13#10
-//+ '  -m NUMBER, --margin=NUMBER' + #13#10
-//+ '               specify the width of the margins. (default=4 (2 for Micro)))' + #13#10#13#10
-//+ '  -d NUMBER, --dpi=NUMBER' + #13#10
-//+ '               specify the DPI of the generated PNG. (default=72)' + #13#10#13#10
-//+ '  -t {PNG,EPS,SVG,ANSI,ANSI256,ASCII,ASCIIi,UTF8,ANSIUTF8}, --type={PNG,EPS,' + #13#10
-//+ '               SVG,ANSI,ANSI256,ASCII,ASCIIi,UTF8,ANSIUTF8}' + #13#10
-//+ '               specify the type of the generated image. (default=PNG)' + #13#10#13#10
-//+ '  -S, --structured' + #13#10
-//+ '               make structured symbols. Version must be specified.' + #13#10#13#10
-//+ '  -k, --kanji  assume that the input text contains kanji (shift-jis).' + #13#10#13#10
-//+ '  -c, --casesensitive' + #13#10
-//+ '               encode lower-case alphabet characters in 8-bit mode. (default)' + #13#10#13#10
-//+ '  -i, --ignorecase' + #13#10
-//+ '               ignore case distinctions and use only upper-case characters.' + #13#10#13#10
-//+ '  -8, --8bit   encode entire data in 8-bit mode. -k, -c and -i will be ignored.' + #13#10#13#10
-//+ '      --rle    enable run-length encoding for SVG.' + #13#10#13#10
-//+ '  -M, --micro  encode in a Micro QR Code. (experimental)' + #13#10#13#10
-//+ '      --foreground=RRGGBB[AA]' + #13#10
-//+ '      --background=RRGGBB[AA]' + #13#10
-//+ '               specify foreground/background color in hexadecimal notation.' + #13#10
-//+ '               6-digit (RGB) or 8-digit (RGBA) form are supported.' + #13#10
-//+ '               Color output support available only in PNG and SVG.' + #13#10
-//+ '  -V, --version' + #13#10
-//+ '               display the version number and copyrights of the qrencode.' + #13#10#13#10
-//+ '  [STRING]     input data. If it is not specified, data will be taken from' + #13#10
-//+ '               standard input.' + #13#10
-//      );
-//		end else begin
-//			Writeln(
-//'Usage: qrencode [OPTION]... [STRING]' + #13#10
-//+ 'Encode input data in a QR Code and save as a PNG or EPS image.' + #13#10#13#10
-//+ '  -h           display this message.' + #13#10
-//+ '  --help       display the usage of long options.' + #13#10
-//+ '  -o FILENAME  write image to FILENAME. If ''-'' is specified, the result' + #13#10
-//+ '               will be output to standard output. If -S is given, structured' + #13#10
-//+ '               symbols are written to FILENAME-01.png, FILENAME-02.png, ...' + #13#10
-//+ '               (suffix is removed from FILENAME, if specified)' + #13#10
-//+ '  -s NUMBER    specify module size in dots (pixels). (default=3)' + #13#10
-//+ '  -l {LMQH}    specify error correction level from L (lowest) to H (highest).' + #13#10
-//+ '               (default=L)' + #13#10
-//+ '  -v NUMBER    specify the version of the symbol. (default=auto)' + #13#10
-//+ '  -m NUMBER    specify the width of the margins. (default=4 (2 for Micro))' + #13#10
-//+ '  -d NUMBER    specify the DPI of the generated PNG. (default=72)' + #13#10
-//+ '  -t {PNG,EPS,SVG,ANSI,ANSI256,ASCII,ASCIIi,UTF8,ANSIUTF8}' + #13#10
-//+ '               specify the type of the generated image. (default=PNG)' + #13#10
-//+ '  -S           make structured symbols. Version must be specified.' + #13#10
-//+ '  -k           assume that the input text contains kanji (shift-jis).' + #13#10
-//+ '  -c           encode lower-case alphabet characters in 8-bit mode. (default)' + #13#10
-//+ '  -i           ignore case distinctions and use only upper-case characters.' + #13#10
-//+ '  -8           encode entire data in 8-bit mode. -k, -c and -i will be ignored.' + #13#10
-//+ '  -M           encode in a Micro QR Code.' + #13#10
-//+ '  --foreground=RRGGBB[AA]' + #13#10
-//+ '  --background=RRGGBB[AA]' + #13#10
-//+ '               specify foreground/background color in hexadecimal notation.' + #13#10
-//+ '               6-digit (RGB) or 8-digit (RGBA) form are supported.' + #13#10
-//+ '               Color output support available only in PNG and SVG.' + #13#10
-//+ '  -V           display the version number and copyrights of the qrencode.' + #13#10
-//+ '  [STRING]     input data. If it is not specified, data will be taken from' + #13#10
-//+ '               standard input.' + #13#10
-//			);
-//		end;
-//	end;
-//end;
+  image_type: imageType = BMP_TYPE;
 
 function writeBMP(qrcode: PQRcode; const outfile: PAnsiChar): Integer;
 var
   bmp: TBitmap;
-  realwidth, x, xx, y, m: Integer;
-  row, p, q: PByte;
-  bit: Integer;
-  pix: PRGBTriple;
+  realwidth, x, xx, y, yy: Integer;
+  p: PByte;
+  pix, pixNew: PRGBTriple;
 begin
   realwidth := (qrcode.width + margin * 2) * size;
-  try
-    GetMem(row, (realwidth + 7) div 8);
-  except
-    Abort;
-  end;
   bmp := TBitmap.Create;
   try
-    p := qrcode.data;
+    bmp.PixelFormat := pf24bit;
+    bmp.Width := realwidth;
+    bmp.Height := realwidth;
+    //设置背景色（整个图片全部设置成背景色，然后设置需要改变的像素为前景色）开始，
+    //设置第一行的颜色
+    pix := bmp.ScanLine[0];
+    for x := 0 to realwidth - 1 do
+    begin
+      pix^.rgbtRed := bg_color[0];
+      pix^.rgbtGreen := bg_color[1];
+      pix^.rgbtBlue := bg_color[2];
+      Inc(pix);
+    end;
+    //后面行的数据复制第一行
+    pix := bmp.ScanLine[0];
+    for y := 1 to realwidth - 1 do
+    begin
+      pixNew := bmp.ScanLine[y];
+      CopyMemory(pixNew, pix, SizeOf(TRGBTriple) * realwidth);
+    end;
+    //设置背景色结束
+
+    //设置需要改变的像素为前景色
     for y := 0 to qrcode.width - 1 do
     begin
-      FillChar(row, (realwidth + 7) div 8, $FF);
-      q := PIndex(row, margin * size div 8);
-      bit := 7 - (margin * size mod 8);
+      p := PIndex(qrcode.data, y * qrcode.width);   //当前需要测试的数据
+      pix := bmp.ScanLine[(y + margin) * size];     //当前需要改变颜色的像素
+      Inc(pix, margin * size);                      //跳过每行的margin
       for x := 0 to qrcode.width - 1 do
       begin
-        for xx := 0 to size - 1 do
+        if (p^ and 1) <> 0 then   //需要改变的像素
         begin
-          q^ := q^ xor ((p^ and 1) shl bit);
-          Dec(bit);
-          if bit < 0 then
+          for xx := 0 to size - 1 do  //重复size大小的前景色
           begin
-            Inc(q);
-            bit := 7;
+            pix^.rgbtRed := fg_color[0];
+            pix^.rgbtGreen := fg_color[1];
+            pix^.rgbtBlue := fg_color[2];
+            Inc(pix);              
           end;
-        end;
+        end else  //跳过不需要改变的像素
+          Inc(pix, size);
         Inc(p);
       end;
+      //总共size行，其它行的数据复制当前行
+      pix := bmp.ScanLine[(y + margin) * size];
+      for yy := 1 to size - 1 do
+      begin
+        pixNew := bmp.ScanLine[(y + margin) * size + yy];
+        CopyMemory(pixNew, pix, SizeOf(TRGBTriple) * realwidth);
+      end;
     end;
-    bmp.SaveToFile(StrPas(outfile));
+
+    bmp.SaveToFile(string(StrPas(outfile)));
+    Result := 0;
   finally
     FreeAndNil(bmp);
   end;
-end;
-
-procedure writeUTF8_margin(var fp: Text; realwidth: Integer;
-  const white, reset: PAnsiChar; use_ansi: Integer);
-var
-  x, y: Integer;
-begin
-	for y := 0 to margin div 2 - 1 do
-  begin
-    Write(fp, white);
-		for x := 0 to realwidth - 1 do
-			Write(fp, #226#150#136);
-    Writeln(fp, reset);
-	end;
-end;
-
-function writeUTF8(qrcode: PQRcode; const outfile: PAnsiChar;
-  use_ansi: Integer): Integer;
-var
-  white, reset: PAnsiChar;
-  fp: TextFile;
-  x, y, realwidth: Integer;
-  row1, row2: PByte;
-begin
-	if use_ansi <> 0 then
-  begin
-		white := #27 + '[40;37;1m';
-		reset := #27 + '[0m';
-	end else begin
-		white := '';
-		reset := '';
-	end;
-
-  AssignFile(fp, outfile);
-  Rewrite(fp);
-
-	realwidth := (qrcode.width + margin * 2);
-
-	{* top margin *}
-	writeUTF8_margin(fp, realwidth, white, reset, use_ansi);
-
-	{* data *}
-  y := 0;
-  while y < qrcode.width do
-  begin
-		row1 := PIndex(qrcode.data, y * qrcode.width);
-		row2 := PIndex(row1, qrcode.width);
-
-    write(fp, white);
-
-		for x := 0 to margin - 1 do
-      write(fp, #226#150#136);
-
-		for x := 0 to qrcode.width - 1 do
-    begin
-			if (PIndex(row1, x)^ and 1) <> 0 then
-      begin
-				if (y < qrcode.width - 1) and ((PIndex(row2, x)^ and 1) <> 0) then
-        begin
-          write(fp, ' ');
-				end else begin
-					write(fp, #226#150#132);
-				end;
-			end else begin
-				if (y < qrcode.width - 1) and ((PIndex(row2, x)^ and 1) <> 0) then
-        begin
-					write(fp, #226#150#128);
-				end else begin
-					write(fp, #226#150#136);
-				end;
-			end;
-		end;
-
-		for x := 0 to margin - 1 do
-			write(fp, #226#150#136);
-
-		Writeln(fp, reset);
-    Inc(y, 2);
-	end;
-
-	{* bottom margin *}
-	writeUTF8_margin(fp, realwidth, white, reset, use_ansi);
-
-	CloseFile(fp);
-
-	Result := 0;
 end;
 
 function encode(const intext: PByte; length: Integer): PQRcode;
@@ -334,35 +137,19 @@ begin
 	qrcode := encode(intext, length);
 	if qrcode = nil then
   begin
-//		Writeln('Failed to encode the input data');
 		Abort;
 	end;
-	case (image_type) of
-    BMP_TYPE: writeBMP(qrcode, outfile);
-//		PNG_TYPE:
-//			writePNG(qrcode, outfile);
-//		EPS_TYPE:
-//			writeEPS(qrcode, outfile);
-//		SVG_TYPE:
-//			writeSVG(qrcode, outfile);
-//		ANSI_TYPE,
-//    ANSI256_TYPE: 
-//			writeANSI(qrcode, outfile);
-//		ASCIIi_TYPE:
-//			writeASCII(qrcode, outfile,  1);
-//		ASCII_TYPE:
-//			writeASCII(qrcode, outfile,  0);
-		UTF8_TYPE:
-			writeUTF8(qrcode, outfile, 0);
-		ANSIUTF8_TYPE: 
-			writeUTF8(qrcode, outfile, 1);
-		else begin
-//			Writeln('Unknown image type.');
-      QRcode_free(qrcode);
-			Abort;
+  try
+    case (image_type) of
+      BMP_TYPE: writeBMP(qrcode, outfile);
+      else begin
+        QRcode_free(qrcode);
+        Abort;
+      end;
     end;
-	end;
-	QRcode_free(qrcode);
+  finally
+  	QRcode_free(qrcode);
+  end;
 end;
 
 function encodeStructured(const intext: PByte; length: Integer): PQRcode_List;
@@ -390,40 +177,30 @@ var
   i: Integer;
   suffix_size: Integer;
 begin
+  suffix := nil;
+  type_suffix := nil;
   i := 1;          
 	case image_type of
     BMP_TYPE: type_suffix := '.bmp';
-		PNG_TYPE: type_suffix := '.png';
-		EPS_TYPE: type_suffix := '.eps';
-		SVG_TYPE: type_suffix := '.svg';
-		ANSI_TYPE,
-		ANSI256_TYPE,
-		ASCII_TYPE,
-		UTF8_TYPE,
-		ANSIUTF8_TYPE:
-			type_suffix := '.txt';
 		else begin
-//			Writeln('Unknown image type.');
 			Abort;
     end;
 	end;
 
 	if outfile = nil then
   begin
-//		Writeln('An output filename must be specified to store the structured images.');
 		Abort;
 	end;
 	base := strdup(outfile);
 	if base = nil then
   begin
-//		Writeln('Failed to allocate memory.');
 		Abort;
 	end;
-	suffix_size := lstrlen(type_suffix);
-	if lstrlen(base) > suffix_size then
+	suffix_size := lstrlenA(type_suffix);
+	if lstrlenA(base) > suffix_size then
   begin
-		q := base + lstrlen(base) - suffix_size;
-		if lstrcmpi(type_suffix, q) = 0 then
+		q := base + lstrlenA(base) - suffix_size;
+		if lstrcmpiA(type_suffix, q) = 0 then
     begin
 			suffix := strdup(q);
 			q^ := #0;
@@ -433,81 +210,65 @@ begin
 	qrlist := encodeStructured(intext, length);
 	if qrlist = nil then
   begin
-//		Writeln('Failed to encode the input data');
 		Abort;
 	end;
 
   p := qrlist;
-  while p <> nil do
-  begin
-		if p.code = nil then
+  try
+    while p <> nil do
     begin
-//			Writeln('Failed to encode the input data.');
-			Abort;
-		end;
-		if suffix <> nil then
-    begin
-      filename := PAnsiChar(Format('%s-%.2d%s', [base, i, suffix]));
-		end else begin
-      filename := PAnsiChar(Format('%s-%.2d', [base, i]));
-		end;
-		case image_type of
-      BMP_TYPE: writeBMP(p.code, filename);
-//			PNG_TYPE:
-//				writePNG(p->code, filename);
-//			EPS_TYPE:
-//				writeEPS(p->code, filename);
-//			SVG_TYPE:
-//				writeSVG(p->code, filename);
-//			ANSI_TYPE:
-//			ANSI256_TYPE:
-//				writeANSI(p->code, filename);
-//			ASCIIi_TYPE:
-//				writeASCII(p->code, filename, 1);
-//			ASCII_TYPE:
-//				writeASCII(p->code, filename, 0);
-			UTF8_TYPE:
-				writeUTF8(p.code, filename, 0);
-			ANSIUTF8_TYPE:
-				writeUTF8(p.code, filename, 0);
-
-			else begin
-//				Writeln('Unknown image type.');
-				Abort;
+      if p.code = nil then
+      begin
+        Abort;
       end;
-		end;
-		Inc(i);
-    p := p.next;
-	end;
-
-	FreeMem(base);
-	if suffix <> nil then
-		FreeMem(suffix);
-
-	QRcode_List_free(qrlist);
+      if suffix <> nil then
+      begin
+        filename := PAnsiChar(AnsiString(Format('%s-%.2d%s', [base, i, suffix])));
+      end else begin
+        filename := PAnsiChar(AnsiString(Format('%s-%.2d', [base, i])));
+      end;
+      case image_type of
+        BMP_TYPE: writeBMP(p.code, filename);
+        else begin
+          Abort;
+        end;
+      end;
+      Inc(i);
+      p := p.next;
+    end;
+  finally
+    FreeMem(base);
+    if suffix <> nil then
+      FreeMem(suffix);  
+  	QRcode_List_free(qrlist);
+  end;
 end;
 
-procedure qr(str: string);
+procedure qr(const AStr, AOut: AnsiString; AMargin, ASize, AEightBit, ACasesens,
+  AStructured, ALevel: Integer; AFore, ABack: TColor);
 var
-  pb: PByte;
-  s: AnsiString;
+  pc: PAnsiChar;
 begin
   version := 1;
-  margin := 2;
-  size := 3;  
+  margin := AMargin;
+  size := ASize;
+  eightbit := AEightBit;
+  casesensitive := casesensitive;
+  structured := AStructured;
+  level := QRecLevel(ALevel);
+  fg_color[0] := AFore and $FF;
+  fg_color[1] := (AFore and $FF00) shr 8;
+  fg_color[2] := (AFore and $FF0000) shr 16;
+  bg_color[0] := ABack and $FF;
+  bg_color[1] := (ABack and $FF00) shr 8;
+  bg_color[2] := (ABack and $FF0000) shr 16;
+  image_type := BMP_TYPE;
 
-  s := AnsiString(str);
-  try
-    GetMem(pb, Length(s) * SizeOf(AnsiChar) + 1);
-    ZeroMemory(pb, Length(s) * SizeOf(AnsiChar) + 1);
-//    CopyMemory(pb, PAnsiChar(s), Length(s));
-//    qrencodeStructured(pb, Length(s) * SizeOf(AnsiChar), 'F:\My Documents\CodeBlocks\qrencode\21.txt');
-    structured := 0;
-    CopyMemory(pb, PAnsiChar(s), Length(s));
-    qrcode(pb, Length(s) * SizeOf(AnsiChar), '22.txt');
-    FreeMem(pb);
-  except
-  end;  
+  pc := PAnsiChar(AStr);
+  if structured = 1 then
+    qrencodeStructured(PByte(pc), lstrlenA(pc), PAnsiChar(AOut))
+  else
+    qrcode(PByte(pc), lstrlenA(pc), PAnsiChar(AOut));
 end;
 
 end.

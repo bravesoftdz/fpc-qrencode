@@ -1,3 +1,22 @@
+//
+//-------------------------------------------------------------------------
+//                                                               
+//    http://fukuchi.org/works/qrencode/                                                             
+//    bitstream.c   
+//                                                               
+//    Version 1.0                                              
+//    Update Date: 2014.4.22.
+//    Author: [$]+                                    
+//    QQ: 270965332
+//    Homepage:
+//                                                               
+//    Copyright(C) 2014. All rights reserved   
+//                                                               
+//                                                               
+//-------------------------------------------------------------------------
+//
+
+
 unit bitstream;
 
 interface

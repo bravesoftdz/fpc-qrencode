@@ -23,12 +23,12 @@ implementation
 
 function isdigit(c: AnsiChar): Boolean;
 begin
-  Result := (c <> #0) and (Ord(c) - Ord('0') < 10);
+  Result := Byte(Byte(c) - Byte('0')) < 10;
 end;
 
 function isalnum(c: AnsiChar): Boolean;
 begin
-  Result := QRinput_lookAnTable(Ord(c)) >= 0;
+  Result := QRinput_lookAnTable(Byte(c)) >= 0;
 end;
 
 function Split_identifyMode(const str: PAnsiChar; hint: QRencodeMode): QRencodeMode;
@@ -49,7 +49,7 @@ begin
     d := PIndex(str, 1)^;
     if d <> #0 then
     begin
-      word := (Ord(c) shl 8) or Ord(d);
+      word := (Byte(c) shl 8) or Byte(d);
       if ((word >= $8140) and (word <= $9ffc))
         or ((word >= $e040) and (word <= $ebbf)) then
       begin
@@ -288,7 +288,7 @@ begin
 			Inc(p, 2)
 		else begin
 			if (p^ >= 'a') and (p^ <= 'z') then
-				p^ := Chr(Ord(p^) - 32);
+				p^ := AnsiChar(Ord(p^) - 32);
 			Inc(p);
 		end;
 	end;        

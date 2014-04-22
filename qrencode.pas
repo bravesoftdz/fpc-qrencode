@@ -808,6 +808,8 @@ begin
     try
       GetMem(masked, width * width);
     except
+      Result := nil;
+      Exit;
     end;
     CopyMemory(masked, frame, width * width);
 //		memcpy(masked, frame, width * width);
@@ -1058,7 +1060,7 @@ begin
 	  Result := nil;
     Exit;
 	end;
-	Result := QRcode_encodeDataReal(PByte(str), lstrlen(str), version, level, 0);
+	Result := QRcode_encodeDataReal(PByte(str), lstrlenA(str), version, level, 0);
 end;
 
 function QRcode_encodeDataMQR(size: Integer; const data: PByte; version: Integer;
@@ -1076,7 +1078,7 @@ begin
 		Result := nil;
     Exit;
 	end;
-	Result := QRcode_encodeDataReal(PByte(str), lstrlen(str), version, level, 1);
+	Result := QRcode_encodeDataReal(PByte(str), lstrlenA(str), version, level, 1);
 end;
 
 {******************************************************************************
@@ -1275,7 +1277,7 @@ begin
 		Result := nil;
     Exit;
 	end;
-	Result := QRcode_encodeDataStructured(lstrlen(str), PByte(str), version, level);
+	Result := QRcode_encodeDataStructured(lstrlenA(str), PByte(str), version, level);
 end;
 
 function QRcode_encodeStringStructured(const str: PAnsiChar; version: Integer;
@@ -1287,7 +1289,7 @@ begin
 		Result := nil;
     Exit;
 	end;
-	Result := QRcode_encodeDataStructuredReal(lstrlen(str), PByte(str),
+	Result := QRcode_encodeDataStructuredReal(lstrlenA(str), PByte(str),
     version, level, 0, hint, casesensitive);  
 end;
 
@@ -1313,8 +1315,8 @@ end;
 
 function QRcode_APIVersionString(): PAnsiChar;
 begin
-	Result := PAnsiChar(Format('%d.%d.%d', [MAJOR_VERSION,
-    MINOR_VERSION, MICRO_VERSION]));
+	Result := PAnsiChar(AnsiString(Format('%d.%d.%d', [MAJOR_VERSION,
+    MINOR_VERSION, MICRO_VERSION])));
 end;
 
 procedure QRcode_clearCache();

@@ -308,7 +308,6 @@ begin
     entry.data := nil;
 		BitStream_free(entry.bstream);
 		FreeMem(entry);
-    entry := nil;
 	end;
 end;
 

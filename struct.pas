@@ -214,8 +214,6 @@ function strdup(const s: PAnsiChar): PAnsiChar;
 
 function btoi(b: Boolean): Integer;
 
-procedure DebugData(qrcode: PQRcode);
-
 implementation
 
 function PIndex(ASrc: PAnsiChar; AIndex: Integer): PAnsiChar;
@@ -246,7 +244,7 @@ function strdup(const s: PAnsiChar): PAnsiChar;
 var
   len: Cardinal;
 begin
-  len := lstrlen(s) + 1;
+  len := lstrlenA(s) + 1;
   try
     GetMem(Result, len);
     CopyMemory(Result, s, len);
@@ -261,41 +259,6 @@ begin
     Result := 1
   else
     Result := 0;
-end;
-
-procedure DebugData(qrcode: PQRcode);
-var
-  x, y: Integer;
-  row1, row2: PByte;
-begin
-  {* data *}
-  y := 0;
-  while y < qrcode.width do
-  begin
-		row1 := PIndex(qrcode.data, y * qrcode.width);
-		row2 := PIndex(row1, qrcode.width);
-
-		for x := 0 to qrcode.width - 1 do
-    begin
-//			if (PIndex(row1, x)^ and 1) <> 0 then
-//      begin
-//				if (y < qrcode.width - 1) and ((PIndex(row2, x)^ and 1) <> 0) then
-//        begin
-//          write(fp, ' ');
-//				end else begin
-//					write(fp, #226#150#132);
-//				end;
-//			end else begin
-//				if (y < qrcode.width - 1) and ((PIndex(row2, x)^ and 1) <> 0) then
-//        begin
-//					write(fp, #226#150#128);
-//				end else begin
-//					write(fp, #226#150#136);
-//				end;
-//			end;
-		end;
-    Inc(y, 2);
-	end;
 end;
 
 end.
