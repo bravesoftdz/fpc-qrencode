@@ -120,6 +120,7 @@ object frmQRcode: TfrmQRcode
     Width = 73
     Height = 20
     Style = csDropDownList
+    ItemHeight = 12
     TabOrder = 2
     Items.Strings = (
       'L(Lowest)'
@@ -133,6 +134,7 @@ object frmQRcode: TfrmQRcode
     Width = 73
     Height = 20
     Style = csDropDownList
+    ItemHeight = 12
     TabOrder = 7
     Items.Strings = (
       '0'
@@ -144,6 +146,7 @@ object frmQRcode: TfrmQRcode
     Width = 73
     Height = 20
     Style = csDropDownList
+    ItemHeight = 12
     TabOrder = 6
     Items.Strings = (
       '0'
@@ -155,6 +158,7 @@ object frmQRcode: TfrmQRcode
     Width = 73
     Height = 20
     Style = csDropDownList
+    ItemHeight = 12
     TabOrder = 5
     Items.Strings = (
       '0'
@@ -165,6 +169,7 @@ object frmQRcode: TfrmQRcode
     Top = 11
     Width = 89
     Height = 22
+    ItemHeight = 16
     TabOrder = 0
   end
   object clrbxBack: TColorBox
@@ -172,6 +177,7 @@ object frmQRcode: TfrmQRcode
     Top = 43
     Width = 89
     Height = 22
+    ItemHeight = 16
     TabOrder = 3
   end
   object edtOutput: TEdit
