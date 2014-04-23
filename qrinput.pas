@@ -811,7 +811,7 @@ end;
 function QRinput_encodeModeAn(entry: PQRinput_List; version, mqr: Integer): Integer;
 var
   words, i, ret: Integer;
-  val: Byte;
+  val: Cardinal;
 begin
   Result := -1;
 	entry.bstream := BitStream_new();
