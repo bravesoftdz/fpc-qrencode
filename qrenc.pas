@@ -16,8 +16,8 @@ interface
 uses
   Windows, SysUtils, struct, Graphics;
 
-procedure qr(const AStr, AOut: AnsiString; AMargin, ASize, AEightBit, ACasesens,
-  AStructured, ALevel: Integer; AFore, ABack: TColor);
+procedure qr(const AStr, AOut: AnsiString; AMargin, ASize, AEightBit,
+  ACasesens, AStructured, ALevel, ACode: Integer; AFore, ABack: TColor);
 
 implementation
 
@@ -255,10 +255,8 @@ begin
   end;
 end;
 
-procedure qr(const AStr, AOut: AnsiString; AMargin, ASize, AEightBit, ACasesens,
-  AStructured, ALevel: Integer; AFore, ABack: TColor);
-var
-  pc: PAnsiChar;
+procedure qrencode(const AStr: PByte; ALen: Integer; AOut: AnsiString; AMargin,
+  ASize, AEightBit, ACasesens, AStructured, ALevel: Integer; AFore, ABack: TColor);
 begin
   version := 1;
   margin := AMargin;
@@ -275,11 +273,30 @@ begin
   bg_color[2] := (ABack and $FF0000) shr 16;
   image_type := BMP_TYPE;
 
-  pc := PAnsiChar(AStr);
   if structured = 1 then
-    qrencodeStructured(PByte(pc), lstrlenA(pc), PAnsiChar(AOut))
+    qrencodeStructured(AStr, ALen, PAnsiChar(AOut))
   else
-    qrcode(PByte(pc), lstrlenA(pc), PAnsiChar(AOut));
+    qrcode(AStr, ALen, PAnsiChar(AOut));
+end;
+
+procedure qr(const AStr, AOut: AnsiString; AMargin, ASize, AEightBit,
+  ACasesens, AStructured, ALevel, ACode: Integer; AFore, ABack: TColor);
+var
+  sutf8: UTF8String;
+  pb: PByte;
+  iLen: Integer;
+begin
+  if ACode = 0 then
+  begin
+    sutf8 := AnsiToUtf8(AStr);
+    iLen := Length(sutf8);
+    pb := PByte(PAnsiChar(sutf8));
+  end else begin
+    iLen := Length(AStr);
+    pb := PByte(PAnsiChar(AStr));
+  end;
+  qrencode(pb, iLen, AOut, AMargin, ASize, AEightBit,
+    ACasesens, AStructured, ALevel, AFore, ABack);
 end;
 
 end.

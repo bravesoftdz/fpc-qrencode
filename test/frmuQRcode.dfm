@@ -79,6 +79,13 @@ object frmQRcode: TfrmQRcode
     Height = 12
     Caption = 'output'
   end
+  object lbl10: TLabel
+    Left = 321
+    Top = 80
+    Width = 24
+    Height = 12
+    Caption = 'code'
+  end
   object btnGen: TButton
     Left = 392
     Top = 106
@@ -188,5 +195,17 @@ object frmQRcode: TfrmQRcode
     BiDiMode = bdLeftToRight
     ParentBiDiMode = False
     TabOrder = 9
+  end
+  object cbbCode: TComboBox
+    Left = 352
+    Top = 76
+    Width = 89
+    Height = 20
+    Style = csDropDownList
+    ItemHeight = 12
+    TabOrder = 11
+    Items.Strings = (
+      'UTF8'
+      'GB2312')
   end
 end

@@ -39,6 +39,8 @@ type
     clrbxBack: TColorBox;
     edtOutput: TEdit;
     lbl9: TLabel;
+    lbl10: TLabel;
+    cbbCode: TComboBox;
     procedure btnGenClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
@@ -59,7 +61,7 @@ uses
   qrenc;
 
 procedure TfrmQRcode.btnGenClick(Sender: TObject);
-begin
+begin    
   try
     qr(
       AnsiString(StringReplace(mmoContent.Text, #13#10, '', [rfReplaceAll])),
@@ -70,6 +72,7 @@ begin
       cbbCasesens.ItemIndex,
       cbbStructured.ItemIndex,
       cbbLevel.ItemIndex,
+      cbbCode.ItemIndex,
       clrbxFore.Selected,
       clrbxBack.Selected
     );
@@ -89,6 +92,7 @@ begin
   cbbLevel.ItemIndex := 0;
   cbbCasesens.ItemIndex := 1;
   cbbEightBit.ItemIndex := 0;
+  cbbCode.ItemIndex := 0;
 end;
 
 end.
