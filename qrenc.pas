@@ -35,13 +35,16 @@ interface
 uses
   Windows, SysUtils, struct, Graphics;
 
-procedure qr(const AStr, AOut: AnsiString; AMargin, ASize, AEightBit,
+procedure qr(const AStr: WideString; AOut: AnsiString; AMargin, ASize, AEightBit,
   ACasesens, AStructured, ALevel, ACode: Integer; AFore, ABack: TColor);
 
 implementation
 
 uses
   qrencode;
+
+const
+  MAX_DATA_SIZE = 7090 * 16;
 
 type
   imageType = (
@@ -298,24 +301,68 @@ begin
     qrcode(AStr, ALen, PAnsiChar(AOut));
 end;
 
-procedure qr(const AStr, AOut: AnsiString; AMargin, ASize, AEightBit,
+function LocaleToWide(const AStr: AnsiString): WideString;
+var
+  nLen: Integer;
+begin
+  Result := AStr;
+  if Result <> '' then
+  begin
+    nLen := MultiByteToWideChar(CP_ACP, 1, PAnsiChar(AStr), -1, nil, 0);
+    SetLength(Result, nLen - 1);
+    if nLen > 1 then
+      MultiByteToWideChar(CP_ACP, 1, PAnsiChar(AStr), -1, PWideChar(Result),
+        nLen - 1);
+  end;
+end;
+
+function WideToAnsi(const AStr: WideString; ACode: Cardinal = 936): AnsiString;
+var
+  nLen: Integer;
+begin
+  Result := AStr;
+  if Result <> '' then
+  begin
+    nLen := WideCharToMultiByte(ACode, 0, PWideChar(AStr),
+      lstrlenW(PWideChar(AStr)), PAnsiChar(Result), 0, nil, nil);
+    SetLength(Result, nLen - 1);
+    if nLen > 1 then
+      WideCharToMultiByte(ACode, 0, PWideChar(AStr),
+        lstrlenW(PWideChar(AStr)), PAnsiChar(Result), nLen, nil, nil);
+  end;
+end;
+
+procedure qr(const AStr: WideString; AOut: AnsiString; AMargin, ASize, AEightBit,
   ACasesens, AStructured, ALevel, ACode: Integer; AFore, ABack: TColor);
 var
-  sutf8: UTF8String;
+  sCode: AnsiString;
+  pw: PWideChar;
   pb: PByte;
   iLen: Integer;
 begin
-  if ACode = 0 then
-  begin
-    sutf8 := AnsiToUtf8(AStr);
-    iLen := Length(sutf8);
-    pb := PByte(PAnsiChar(sutf8));
-  end else begin
-    iLen := Length(AStr);
-    pb := PByte(PAnsiChar(AStr));
+  try
+    GetMem(pb, MAX_DATA_SIZE);
+  except
+    Abort;
   end;
-  qrencode(pb, iLen, AOut, AMargin, ASize, AEightBit,
-    ACasesens, AStructured, ALevel, AFore, ABack);
+  try
+    ZeroMemory(pb, MAX_DATA_SIZE);
+    if ACode = 0 then
+    begin              
+//      pw := PWideChar(LocaleToWide(AStr));
+//      sCode := WideToAnsi(LocaleToWide(AStr));
+      pw := PWideChar(AStr);
+      iLen := WideCharToMultiByte(CP_UTF8, 0, pw, lstrlenW(pw), PAnsiChar(pb),
+        MAX_DATA_SIZE, nil, nil);
+    end else begin
+      iLen := Length(AStr);
+      CopyMemory(pb, PAnsiChar(AStr), iLen);
+    end;
+    qrencode(pb, iLen, AOut, AMargin, ASize, AEightBit,
+      ACasesens, AStructured, ALevel, AFore, ABack);
+  finally
+    FreeMem(pb);
+  end;
 end;
 
 end.

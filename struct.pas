@@ -239,7 +239,8 @@ function PIndex(ASrc: PByte; AIndex: Integer): PByte; overload;
 function PIndex(ASrc: PInteger; AIndex: Integer): PInteger; overload;
 function PIndex(ASrc: PData_t; AIndex: Integer): PData_t; overload;
 
-function strdup(const s: PAnsiChar): PAnsiChar;
+function strdup(const s: PAnsiChar): PAnsiChar; overload;
+function strdup(const s: PWideChar): PWideChar; overload;
 
 function btoi(b: Boolean): Integer;
 
@@ -274,6 +275,19 @@ var
   len: Cardinal;
 begin
   len := lstrlenA(s) + 1;
+  try
+    GetMem(Result, len);
+    CopyMemory(Result, s, len);
+  except
+    Result := nil;
+  end;
+end;
+
+function strdup(const s: PWideChar): PWideChar;
+var
+  len: Cardinal;
+begin
+  len := lstrlenW(s) + 2;
   try
     GetMem(Result, len);
     CopyMemory(Result, s, len);

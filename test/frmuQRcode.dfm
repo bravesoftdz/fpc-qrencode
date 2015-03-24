@@ -1,9 +1,9 @@
 object frmQRcode: TfrmQRcode
-  Left = 603
-  Top = 304
+  Left = 229
+  Top = 305
   BorderStyle = bsDialog
   Caption = 'QRcode'
-  ClientHeight = 277
+  ClientHeight = 285
   ClientWidth = 452
   Color = clBtnFace
   Font.Charset = GB2312_CHARSET
@@ -14,6 +14,7 @@ object frmQRcode: TfrmQRcode
   OldCreateOrder = False
   Position = poDesktopCenter
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 12
   object lbl1: TLabel
@@ -88,20 +89,12 @@ object frmQRcode: TfrmQRcode
   end
   object btnGen: TButton
     Left = 392
-    Top = 106
+    Top = 105
     Width = 48
     Height = 25
     Caption = #29983#25104
-    TabOrder = 8
+    TabOrder = 9
     OnClick = btnGenClick
-  end
-  object mmoContent: TMemo
-    Left = 8
-    Top = 136
-    Width = 433
-    Height = 129
-    ScrollBars = ssVertical
-    TabOrder = 10
   end
   object edtMargin: TEdit
     Left = 69
@@ -110,7 +103,7 @@ object frmQRcode: TfrmQRcode
     Height = 20
     BiDiMode = bdLeftToRight
     ParentBiDiMode = False
-    TabOrder = 1
+    TabOrder = 0
     Text = '2'
   end
   object edtSize: TEdit
@@ -118,7 +111,7 @@ object frmQRcode: TfrmQRcode
     Top = 44
     Width = 73
     Height = 20
-    TabOrder = 4
+    TabOrder = 3
     Text = '3'
   end
   object cbbLevel: TComboBox
@@ -128,7 +121,7 @@ object frmQRcode: TfrmQRcode
     Height = 20
     Style = csDropDownList
     ItemHeight = 12
-    TabOrder = 2
+    TabOrder = 1
     Items.Strings = (
       'L(Lowest)'
       'M'
@@ -166,35 +159,26 @@ object frmQRcode: TfrmQRcode
     Height = 20
     Style = csDropDownList
     ItemHeight = 12
-    TabOrder = 5
+    TabOrder = 4
     Items.Strings = (
       '0'
       '1')
   end
   object clrbxFore: TColorBox
     Left = 352
-    Top = 11
+    Top = 12
     Width = 89
     Height = 22
     ItemHeight = 16
-    TabOrder = 0
+    TabOrder = 2
   end
   object clrbxBack: TColorBox
     Left = 352
-    Top = 43
+    Top = 44
     Width = 89
     Height = 22
     ItemHeight = 16
-    TabOrder = 3
-  end
-  object edtOutput: TEdit
-    Left = 69
-    Top = 108
-    Width = 308
-    Height = 20
-    BiDiMode = bdLeftToRight
-    ParentBiDiMode = False
-    TabOrder = 9
+    TabOrder = 5
   end
   object cbbCode: TComboBox
     Left = 352
@@ -203,9 +187,16 @@ object frmQRcode: TfrmQRcode
     Height = 20
     Style = csDropDownList
     ItemHeight = 12
-    TabOrder = 11
+    TabOrder = 8
     Items.Strings = (
       'UTF8'
       'GB2312')
+  end
+  object edtOutput: TEdit
+    Left = 69
+    Top = 109
+    Width = 308
+    Height = 20
+    TabOrder = 10
   end
 end
