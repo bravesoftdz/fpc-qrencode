@@ -36,7 +36,7 @@ unit struct;
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages;
+  SysUtils, LCLIntf, LCLType, LMessages;
 
 const
 {**
@@ -250,6 +250,8 @@ function btoi(b: Boolean): Integer;
 
 implementation
 
+// http://www.mortenbs.com/%3Fq%3Dget-length-of-a-string-using-pansichar
+
 function PIndex(ASrc: PAnsiChar; AIndex: Integer): PAnsiChar;
 begin
   Result := ASrc;
@@ -278,10 +280,10 @@ function strdup(const s: PAnsiChar): PAnsiChar;
 var
   len: Cardinal;
 begin
-  len := lstrlenA(s) + 1;
+  len := strlen(s) + 1;
   try
     GetMem(Result, len);
-    CopyMemory(Result, s, len);
+    Move(s, Result, len);
   except
     Result := nil;
   end;
@@ -291,10 +293,10 @@ function strdup(const s: PWideChar): PWideChar;
 var
   len: Cardinal;
 begin
-  len := lstrlenW(s) + 2;
+  len := strlen(s) + 2;
   try
     GetMem(Result, len);
-    CopyMemory(Result, s, len);
+    Move(s, Result, len);
   except
     Result := nil;
   end;

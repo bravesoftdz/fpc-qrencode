@@ -36,7 +36,7 @@ unit rscode;
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, SysUtils, struct;
+  LCLIntf, LCLType, LMessages, SysUtils, struct;
 
 {*
  * General purpose RS codec, 8-bit symbols.
@@ -108,7 +108,7 @@ begin
 
   try
     GetMem(Result, SizeOf(TRS));
-    ZeroMemory(Result, SizeOf(TRS));
+    FillByte(Result, SizeOf(TRS),0);
   except
     Exit;
   end;
@@ -295,7 +295,7 @@ begin
   index_of := PByteArray(rs.index_of);
   alpha_to := PByteArray(rs.alpha_to);
   genpoly := PByteArray(rs.genpoly);
-  ZeroMemory(parity, rs.nroots * SizeOf(data_t));
+  FillByte(parity, rs.nroots * SizeOf(data_t),0);
   for i := 0 to rs.nn - rs.nroots - rs.pad - 1 do
   begin
     feedback := index_of[data_a[i] xor parity_a[0]];
@@ -312,7 +312,7 @@ begin
           xor alpha_to[modnn(rs, feedback + genpoly[rs.nroots - j])];
     end;
     {* Shift *}
-    MoveMemory(@parity_a[0], @parity_a[1], SizeOf(data_t) * (rs.nroots - 1));
+    Move(parity_a[1], parity_a[0], SizeOf(data_t) * (rs.nroots - 1));
     if (feedback <> rs.nn) then
       parity_a[rs.nroots - 1] := alpha_to[modnn(rs, feedback + genpoly[0])]
     else

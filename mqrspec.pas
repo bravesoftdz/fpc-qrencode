@@ -37,7 +37,7 @@ unit mqrspec;
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, struct;
+  LCLIntf, LCLType, LMessages, struct;
 
 const
 {******************************************************************************
@@ -354,7 +354,7 @@ begin
   except      
     Exit;
   end;
-  ZeroMemory(Result, width * width);
+  FillByte(Result, width * width,0);
   {* Finder pattern *}
   putFinderPattern(Result, width, 0, 0);
   {* Separator *}
@@ -402,7 +402,7 @@ begin
   width := mqrspecCapacity[version].width;
   try
     GetMem(Result, width * width);
-    CopyMemory(Result, frames[version], width * width);
+    Move(frames[version], Result, width * width);
   except
   end;
 end;

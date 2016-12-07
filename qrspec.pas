@@ -37,7 +37,7 @@ unit qrspec;
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, struct;
+  LCLIntf, LCLType, LMessages, struct;
 
 {**
  * Return maximum data code length (bytes) for the version.
@@ -612,7 +612,7 @@ begin
     Exit;
   end;
 
-  ZeroMemory(frame, width * width);
+  FillByte(frame, width * width,0);
 	{* Finder pattern *}
 	putFinderPattern(frame, width, 0, 0);
 	putFinderPattern(frame, width, width - 7, 0);
@@ -720,7 +720,7 @@ begin
     Result := nil;
     Exit;
   end;
-  CopyMemory(frame, frames[version], width * width);
+  Move(frames[version], frame, width * width);
   Result := frame;
 end;
 

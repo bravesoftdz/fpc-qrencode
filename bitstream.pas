@@ -38,7 +38,7 @@ unit bitstream;
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, struct;
+  LCLIntf, LCLType, LMessages, struct;
 
 function BitStream_new(): PBitStream;
 function BitStream_append(bstream, arg: PBitStream): Integer;
@@ -170,7 +170,7 @@ begin
     if (BitStream_allocate(bstream, arg.length) <> 0) then
       Exit;
 
-    CopyMemory(bstream.data, arg.data, arg.length);
+    Move(arg.data, bstream.data, arg.length);
     Result := 0;
     Exit;
   end;
@@ -180,9 +180,9 @@ begin
     Exit;
   end;
   p := data;
-  CopyMemory(data, bstream.data, bstream.length);
+  Move(bstream.data, data, bstream.length);
   Inc(p, bstream.length);
-  CopyMemory(p, arg.data, arg.length);
+  Move(arg.data, p, arg.length);
   iLen := bstream.length + arg.length;
   BitStream_freeData(bstream);
   bstream.length := iLen;

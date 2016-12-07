@@ -36,7 +36,7 @@ unit qrencode;
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, SysUtils, struct;
+  LCLIntf, LCLType, LMessages, SysUtils, struct;
 
 {******************************************************************************
  * QRcode output (qrencode.c)
@@ -373,7 +373,7 @@ begin
 	Result.blocks := QRspec_rsBlockNum(spec);
   try
     GetMem(Result.rsblock, SizeOf(TRSblock));
-    ZeroMemory(Result.rsblock, SizeOf(TRSblock));
+    FillByte(Result.rsblock, SizeOf(TRSblock),0);
   except
     QRraw_free(Result);
 		Result := nil;
@@ -486,7 +486,7 @@ begin
 	end;
   try
     GetMem(raw.rsblock, SizeOf(TRSblock));
-    ZeroMemory(raw.rsblock, SizeOf(TRSblock));
+    FillByte(raw.rsblock, SizeOf(TRSblock),0);
   except
     MQRraw_free(raw);
     Result := nil;
@@ -844,7 +844,7 @@ begin
       Result := nil;
       Exit;
     end;
-    CopyMemory(masked, frame, width * width);
+    Move(frame, masked, width * width);
 //		memcpy(masked, frame, width * width);
 	end else if mask < 0 then
   begin
@@ -1093,7 +1093,7 @@ begin
 	  Result := nil;
     Exit;
 	end;
-	Result := QRcode_encodeDataReal(PByte(str), lstrlenA(str), version, level, 0);
+	Result := QRcode_encodeDataReal(PByte(str), strlen(str), version, level, 0);
 end;
 
 function QRcode_encodeDataMQR(size: Integer; const data: PByte; version: Integer;
@@ -1111,7 +1111,7 @@ begin
 		Result := nil;
     Exit;
 	end;
-	Result := QRcode_encodeDataReal(PByte(str), lstrlenA(str), version, level, 1);
+	Result := QRcode_encodeDataReal(PByte(str), strlen(str), version, level, 1);
 end;
 
 {******************************************************************************
@@ -1310,7 +1310,7 @@ begin
 		Result := nil;
     Exit;
 	end;
-	Result := QRcode_encodeDataStructured(lstrlenA(str), PByte(str), version, level);
+	Result := QRcode_encodeDataStructured(strlen(str), PByte(str), version, level);
 end;
 
 function QRcode_encodeStringStructured(const str: PAnsiChar; version: Integer;
@@ -1322,7 +1322,7 @@ begin
 		Result := nil;
     Exit;
 	end;
-	Result := QRcode_encodeDataStructuredReal(lstrlenA(str), PByte(str),
+	Result := QRcode_encodeDataStructuredReal(strlen(str), PByte(str),
     version, level, 0, hint, casesensitive);  
 end;
 

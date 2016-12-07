@@ -37,7 +37,7 @@ unit qrinput;
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, bitstream, struct;
+  LCLIntf, LCLType, LMessages, bitstream, struct;
 
 {******************************************************************************
  * Input data (qrinput.c)
@@ -326,7 +326,7 @@ begin
       Result := nil;
       Exit;
     end;
-    CopyMemory(entry.data, data, size);
+    Move(data, entry.data, size);
 	end;
 	entry.bstream := nil;
 	entry.next := nil;
@@ -362,7 +362,7 @@ begin
     Result := nil;
     Exit;
   end;
-  CopyMemory(Result.data, entry.data, entry.size);
+  Move(entry.data, Result.data, entry.size);
   Result.bstream := nil;
   Result.next := nil;
 end;
@@ -2030,7 +2030,7 @@ begin
     Result := -1;
     Exit;
   end;
-  CopyMemory(data, entry.data, bytes);
+  Move(entry.data, data, bytes);
 	FreeMem(entry.data);
 	entry.data := data;
 	entry.size := bytes;    
