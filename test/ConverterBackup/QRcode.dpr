@@ -1,14 +1,6 @@
 program QRcode;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 uses
-{$IFnDEF FPC}
-{$ELSE}
-  Interfaces,
-{$ENDIF}
   Forms,
   frmuQRcode in 'frmuQRcode.pas' {frmQRcode},
   bitstream in '..\bitstream.pas',

@@ -31,14 +31,10 @@
 
 unit bitstream;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, struct;
+  Windows, struct;
 
 function BitStream_new(): PBitStream;
 function BitStream_append(bstream, arg: PBitStream): Integer;

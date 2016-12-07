@@ -30,14 +30,10 @@
 
 unit qrenc;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, SysUtils, struct, Graphics;
+  Windows, SysUtils, struct, Graphics;
 
 procedure qr(const AStr: WideString; AOut: AnsiString; AMargin, ASize, AEightBit,
   ACasesens, AStructured, ALevel, ACode: Integer; AFore, ABack: TColor);
@@ -85,8 +81,8 @@ begin
     bmp.PixelFormat := pf24bit;
     bmp.Width := realwidth;
     bmp.Height := realwidth;
-    //脡猫脰脙卤鲁戮掳脡芦拢篓脮没赂枚脥录脝卢脠芦虏驴脡猫脰脙鲁脡卤鲁戮掳脡芦拢卢脠禄潞贸脡猫脰脙脨猫脪陋赂脛卤盲碌脛脧帽脣脴脦陋脟掳戮掳脡芦拢漏驴陋脢录拢卢
-    //脡猫脰脙碌脷脪禄脨脨碌脛脩脮脡芦
+    //设置背景色（整个图片全部设置成背景色，然后设置需要改变的像素为前景色）开始，
+    //设置第一行的颜色
     pix := bmp.ScanLine[0];
     for x := 0 to realwidth - 1 do
     begin
@@ -95,37 +91,37 @@ begin
       pix^.rgbtBlue := bg_color[2];
       Inc(pix);
     end;
-    //潞贸脙忙脨脨碌脛脢媒戮脻赂麓脰脝碌脷脪禄脨脨
+    //后面行的数据复制第一行
     pix := bmp.ScanLine[0];
     for y := 1 to realwidth - 1 do
     begin
       pixNew := bmp.ScanLine[y];
       CopyMemory(pixNew, pix, SizeOf(TRGBTriple) * realwidth);
     end;
-    //脡猫脰脙卤鲁戮掳脡芦陆谩脢酶
+    //设置背景色结束
 
-    //脡猫脰脙脨猫脪陋赂脛卤盲碌脛脧帽脣脴脦陋脟掳戮掳脡芦
+    //设置需要改变的像素为前景色
     for y := 0 to qrcode.width - 1 do
     begin
-      p := PIndex(qrcode.data, y * qrcode.width);   //碌卤脟掳脨猫脪陋虏芒脢脭碌脛脢媒戮脻
-      pix := bmp.ScanLine[(y + margin) * size];     //碌卤脟掳脨猫脪陋赂脛卤盲脩脮脡芦碌脛脧帽脣脴
-      Inc(pix, margin * size);                      //脤酶鹿媒脙驴脨脨碌脛margin
+      p := PIndex(qrcode.data, y * qrcode.width);   //当前需要测试的数据
+      pix := bmp.ScanLine[(y + margin) * size];     //当前需要改变颜色的像素
+      Inc(pix, margin * size);                      //跳过每行的margin
       for x := 0 to qrcode.width - 1 do
       begin
-        if (p^ and 1) <> 0 then   //脨猫脪陋赂脛卤盲碌脛脧帽脣脴
+        if (p^ and 1) <> 0 then   //需要改变的像素
         begin
-          for xx := 0 to size - 1 do  //脰脴赂麓size麓贸脨隆碌脛脟掳戮掳脡芦
+          for xx := 0 to size - 1 do  //重复size大小的前景色
           begin
             pix^.rgbtRed := fg_color[0];
             pix^.rgbtGreen := fg_color[1];
             pix^.rgbtBlue := fg_color[2];
             Inc(pix);              
           end;
-        end else  //脤酶鹿媒虏禄脨猫脪陋赂脛卤盲碌脛脧帽脣脴
+        end else  //跳过不需要改变的像素
           Inc(pix, size);
         Inc(p);
       end;
-      //脳脺鹿虏size脨脨拢卢脝盲脣眉脨脨碌脛脢媒戮脻赂麓脰脝碌卤脟掳脨脨
+      //总共size行，其它行的数据复制当前行
       pix := bmp.ScanLine[(y + margin) * size];
       for yy := 1 to size - 1 do
       begin

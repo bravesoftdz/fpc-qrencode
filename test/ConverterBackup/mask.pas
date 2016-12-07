@@ -30,19 +30,10 @@
 
 unit mask;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 interface
 
 uses
-{$IFnDEF FPC}
-  Windows,
-{$ELSE}
-  LCLIntf, LCLType, LMessages,
-{$ENDIF}
-  SysUtils, qrencode, struct;
+  Windows, SysUtils, qrencode, struct;
 
 function Mask_makeMask(width: Integer; frame: PByte; mask: Integer;
   level: QRecLevel): PByte;

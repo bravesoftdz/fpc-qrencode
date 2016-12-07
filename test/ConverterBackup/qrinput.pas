@@ -30,14 +30,10 @@
 
 unit qrinput;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, bitstream, struct;
+  Windows, bitstream, struct;
 
 {******************************************************************************
  * Input data (qrinput.c)

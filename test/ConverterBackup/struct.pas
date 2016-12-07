@@ -29,14 +29,10 @@
 
 unit struct;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages;
+  Windows;
 
 const
 {**

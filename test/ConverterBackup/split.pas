@@ -30,19 +30,10 @@
 
 unit split;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 interface
 
 uses
-{$IFnDEF FPC}
-  Windows,
-{$ELSE}
-  LCLIntf, LCLType, LMessages,
-{$ENDIF}
-  struct, SysUtils, Classes, qrinput, qrspec, qrencode;
+  Windows, struct, SysUtils, Classes, qrinput, qrspec, qrencode;
 
 {**
  * Split the input string (null terminated) into QRinput.

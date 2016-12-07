@@ -1,0 +1,225 @@
+object frmQRcode: TfrmQRcode
+  Left = 229
+  Height = 285
+  Top = 305
+  Width = 452
+  BorderStyle = bsDialog
+  Caption = 'QRcode'
+  ClientHeight = 285
+  ClientWidth = 452
+  Color = clBtnFace
+  Font.CharSet = GB2312_CHARSET
+  Font.Color = clBlack
+  Font.Height = -12
+  Font.Name = '宋体'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poDesktopCenter
+  LCLVersion = '1.7'
+  object lbl1: TLabel
+    Left = 29
+    Height = 12
+    Top = 16
+    Width = 36
+    Caption = 'margin'
+    ParentColor = False
+  end
+  object lbl2: TLabel
+    Left = 41
+    Height = 12
+    Top = 48
+    Width = 24
+    Caption = 'size'
+    ParentColor = False
+  end
+  object lbl3: TLabel
+    Left = 167
+    Height = 12
+    Top = 16
+    Width = 30
+    Caption = 'level'
+    ParentColor = False
+  end
+  object lbl4: TLabel
+    Left = 148
+    Height = 12
+    Top = 80
+    Width = 48
+    Caption = 'casesens'
+    ParentColor = False
+  end
+  object lbl5: TLabel
+    Left = 5
+    Height = 12
+    Top = 80
+    Width = 60
+    Caption = 'structured'
+    ParentColor = False
+  end
+  object lbl6: TLabel
+    Left = 149
+    Height = 12
+    Top = 48
+    Width = 48
+    Caption = 'eightbit'
+    ParentColor = False
+  end
+  object lbl7: TLabel
+    Left = 285
+    Height = 12
+    Top = 48
+    Width = 60
+    Caption = 'background'
+    ParentColor = False
+  end
+  object lbl8: TLabel
+    Left = 285
+    Height = 12
+    Top = 16
+    Width = 60
+    Caption = 'foreground'
+    ParentColor = False
+  end
+  object lbl9: TLabel
+    Left = 30
+    Height = 12
+    Top = 112
+    Width = 36
+    Caption = 'output'
+    ParentColor = False
+  end
+  object lbl10: TLabel
+    Left = 321
+    Height = 12
+    Top = 80
+    Width = 24
+    Caption = 'code'
+    ParentColor = False
+  end
+  object btnGen: TButton
+    Left = 392
+    Height = 25
+    Top = 105
+    Width = 48
+    Caption = '生成'
+    OnClick = btnGenClick
+    TabOrder = 9
+  end
+  object edtMargin: TEdit
+    Left = 69
+    Height = 20
+    Top = 12
+    Width = 73
+    ParentBidiMode = False
+    TabOrder = 0
+    Text = '2'
+  end
+  object edtSize: TEdit
+    Left = 69
+    Height = 20
+    Top = 44
+    Width = 73
+    TabOrder = 3
+    Text = '3'
+  end
+  object cbbLevel: TComboBox
+    Left = 203
+    Height = 20
+    Top = 12
+    Width = 73
+    ItemHeight = 12
+    Items.Strings = (
+      'L(Lowest)'
+      'M'
+      'Q'
+      'H(Highest)'
+    )
+    Style = csDropDownList
+    TabOrder = 1
+  end
+  object cbbCasesens: TComboBox
+    Left = 203
+    Height = 20
+    Top = 76
+    Width = 73
+    ItemHeight = 12
+    Items.Strings = (
+      '0'
+      '1'
+    )
+    Style = csDropDownList
+    TabOrder = 7
+  end
+  object cbbStructured: TComboBox
+    Left = 69
+    Height = 20
+    Top = 76
+    Width = 73
+    ItemHeight = 12
+    Items.Strings = (
+      '0'
+      '1'
+    )
+    Style = csDropDownList
+    TabOrder = 6
+  end
+  object cbbEightBit: TComboBox
+    Left = 203
+    Height = 20
+    Top = 44
+    Width = 73
+    ItemHeight = 12
+    Items.Strings = (
+      '0'
+      '1'
+    )
+    Style = csDropDownList
+    TabOrder = 4
+  end
+  object clrbxFore: TColorBox
+    Left = 352
+    Height = 22
+    Top = 12
+    Width = 89
+    ItemHeight = 16
+    TabOrder = 2
+  end
+  object clrbxBack: TColorBox
+    Left = 352
+    Height = 22
+    Top = 44
+    Width = 89
+    ItemHeight = 16
+    TabOrder = 5
+  end
+  object cbbCode: TComboBox
+    Left = 352
+    Height = 20
+    Top = 76
+    Width = 89
+    ItemHeight = 12
+    Items.Strings = (
+      'UTF8'
+      'GB2312'
+    )
+    Style = csDropDownList
+    TabOrder = 8
+  end
+  object edtOutput: TEdit
+    Left = 69
+    Height = 20
+    Top = 109
+    Width = 308
+    TabOrder = 10
+  end
+  object edtInput: TMemo
+    Left = 8
+    Height = 114
+    Top = 152
+    Width = 432
+    Lines.Strings = (
+      'edtInput'
+    )
+    TabOrder = 11
+  end
+end

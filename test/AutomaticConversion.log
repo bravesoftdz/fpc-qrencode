@@ -1,0 +1,23 @@
+QRcode.lpi Note: Added defines -dBorland -dVer150 -dDelphi7 -dCompiler6_Up -dPUREPASCAL in custom options
+ Progress: Found all unit files
+ : 
+ : *** Converting unit files belonging to project/package ***
+frmuQRcode.pas Note: Changed encoding from cp1252 to UTF-8
+frmuQRcode.pas Note: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+bitstream.pas Note: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+mask.pas Note: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+mqrspec.pas Note: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+qrenc.pas Note: Changed encoding from cp1252 to UTF-8
+qrenc.pas Note: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+qrencode.pas Note: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+qrinput.pas Note: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+qrspec.pas Note: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+rscode.pas Note: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+split.pas Note: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+struct.pas Note: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+ : 
+ : *** Fixing used units and Repairing form files ***
+frmuQRcode.pas Note: Removed property "TextHeight".
+frmuQRcode.pas Note: Removed property "OldCreateOrder".
+ Progress: Conversion took: 00:00:04
+ : Conversion Ready.

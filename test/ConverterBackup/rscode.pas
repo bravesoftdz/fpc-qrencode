@@ -29,14 +29,10 @@
 
 unit rscode;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, SysUtils, struct;
+  Windows, SysUtils, struct;
 
 {*
  * General purpose RS codec, 8-bit symbols.

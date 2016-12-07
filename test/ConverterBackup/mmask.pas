@@ -30,10 +30,6 @@
 
 unit mmask;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 interface
 
 uses

@@ -30,14 +30,10 @@
 
 unit mqrspec;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, struct;
+  Windows, struct;
 
 const
 {******************************************************************************

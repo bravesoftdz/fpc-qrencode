@@ -29,14 +29,10 @@
 
 unit qrencode;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, SysUtils, struct;
+  Windows, SysUtils, struct;
 
 {******************************************************************************
  * QRcode output (qrencode.c)

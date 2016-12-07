@@ -30,14 +30,10 @@
 
 unit qrspec;
 
-{$IFDEF FPC}
-  {$MODE Delphi}
-{$ENDIF}
-
 interface
 
 uses
-  Windows, LCLIntf, LCLType, LMessages, struct;
+  Windows, struct;
 
 {**
  * Return maximum data code length (bytes) for the version.
